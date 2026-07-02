@@ -218,7 +218,7 @@ coordinator implemented F-001 and F-004 directly in the main tree.
 - **F-004 — Writing/tracing mode.** `/writing` page with trace (outlined guide
   glyph) + free-draw sub-modes, pointer canvas, clear/prev/next, and a reveal
   panel showing 3 bundled Gurmukhi faces (Noto Sans, Noto Serif, Baloo Paaji 2).
-  Fonts committed under `frontend/src/fonts/`. Verified: all changed/new files
-  pass a Babel parse; full webpack build confirmation pending (registry install
-  was slow/flaky in the build env).
+  Fonts committed under `frontend/src/fonts/`. Verified: `craco build` compiles
+  successfully — the three woff2 fonts are fingerprinted into the build output
+  and the Tracing code is in the emitted bundle.
 
