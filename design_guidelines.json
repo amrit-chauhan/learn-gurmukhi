@@ -1,0 +1,176 @@
+{
+  "design_system": {
+    "identity": {
+      "name": "PanjabiLearn - Modern Phulkari Edition",
+      "tone": "Vibrant, Tactile, Encouraging, Cultural but Modern",
+      "theme_strategy": "Light Theme with Warm Neutrals and Jewel Tones",
+      "visual_archetype": "Modern Phulkari (Archetype 6 + 1 Mix)"
+    },
+    "typography": {
+      "font_family": {
+        "gurmukhi": "Noto Sans Gurmukhi, sans-serif",
+        "english": "Manrope, sans-serif",
+        "display": "Manrope, sans-serif"
+      },
+      "imports": [
+        "https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+Gurmukhi:wght@400;500;600;700&display=swap"
+      ],
+      "scale": {
+        "h1": "text-4xl md:text-5xl font-extrabold tracking-tight text-stone-900",
+        "h2": "text-3xl font-bold tracking-tight text-stone-800",
+        "h3": "text-2xl font-semibold text-stone-800",
+        "body_lg": "text-lg font-medium text-stone-700",
+        "body": "text-base text-stone-600",
+        "gurmukhi_hero": "text-9xl font-bold text-stone-900 leading-none",
+        "gurmukhi_grid": "text-3xl font-semibold"
+      }
+    },
+    "colors": {
+      "palette": {
+        "brand": {
+          "primary": "#DB2777",
+          "secondary": "#EA580C",
+          "tertiary": "#FBBF24"
+        },
+        "background": {
+          "default": "#FAFAF9",
+          "paper": "#FFFFFF",
+          "subtle": "#F5F5F4"
+        },
+        "text": {
+          "primary": "#1C1917",
+          "secondary": "#57534E",
+          "muted": "#A8A29E"
+        },
+        "mastery": {
+          "mastered": {
+            "bg": "#ECFDF5",
+            "text": "#047857",
+            "border": "#10B981"
+          },
+          "learning": {
+            "bg": "#FFFBEB",
+            "text": "#B45309",
+            "border": "#F59E0B"
+          },
+          "struggling": {
+            "bg": "#FEF2F2",
+            "text": "#B91C1C",
+            "border": "#EF4444"
+          }
+        },
+        "ui": {
+          "border": "#E7E5E4",
+          "input": "#E7E5E4",
+          "ring": "#DB2777"
+        }
+      },
+      "gradients": {
+        "primary": "from-pink-600 to-orange-500",
+        "surface_sheen": "from-white/50 to-white/10"
+      }
+    },
+    "layout": {
+      "spacing_scale": {
+        "section_gap": "gap-8 md:gap-12",
+        "container_padding": "p-6 md:p-8",
+        "card_padding": "p-6"
+      },
+      "grid_strategies": {
+        "letter_selection": "grid-cols-5 md:grid-cols-8 gap-3 md:gap-4",
+        "mode_selection": "grid-cols-1 md:grid-cols-2 gap-6"
+      },
+      "border_radius": {
+        "card": "rounded-2xl",
+        "button": "rounded-full",
+        "input": "rounded-xl"
+      }
+    },
+    "shadows": {
+      "card": "shadow-[0_2px_8px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.02)]",
+      "card_hover": "shadow-[0_12px_24px_rgba(0,0,0,0.06),0_4px_8px_rgba(0,0,0,0.04)]",
+      "floating": "shadow-[0_20px_40px_-12px_rgba(0,0,0,0.12)]"
+    }
+  },
+  "components": {
+    "LetterGridItem": {
+      "path": "components/LetterGridItem.js",
+      "visual_style": "Aspect-square flex items-center justify-center rounded-xl border-2 transition-all duration-200 active:scale-95",
+      "states": {
+        "default": "bg-white border-stone-200 text-stone-800 hover:border-pink-300",
+        "selected": "bg-pink-50 border-pink-500 text-pink-700 ring-2 ring-pink-200 ring-offset-2",
+        "mastered": "bg-emerald-50 border-emerald-200 text-emerald-700",
+        "learning": "bg-amber-50 border-amber-200 text-amber-700",
+        "struggling": "bg-red-50 border-red-200 text-red-700"
+      }
+    },
+    "Flashcard": {
+      "path": "components/Flashcard.js",
+      "visual_style": "Relative w-full max-w-sm aspect-[3/4] bg-white rounded-3xl shadow-xl flex flex-col items-center justify-center text-center p-8 border border-stone-100 overflow-hidden",
+      "interaction": "Must use framer-motion for swipe gestures (useMotionValue, useTransform). Rotate and fade on swipe. Tap to flip/reveal.",
+      "elements": {
+        "front": "z-10 flex flex-col items-center justify-center h-full w-full absolute backface-hidden",
+        "back": "z-10 flex flex-col items-center justify-center h-full w-full absolute backface-hidden rotate-y-180",
+        "audio_btn": "absolute top-4 right-4 p-3 rounded-full bg-stone-100 text-stone-600 hover:bg-pink-100 hover:text-pink-600 transition-colors"
+      }
+    },
+    "ModeCard": {
+      "path": "components/ModeCard.js",
+      "visual_style": "group relative overflow-hidden rounded-2xl bg-white p-8 shadow-sm border border-stone-100 hover:shadow-md transition-all cursor-pointer",
+      "content": "Icon/Emoji on top left, Title (h3), Description (body), subtle colorful gradient blob in background"
+    },
+    "ProgressBar": {
+      "path": "components/ui/progress.jsx",
+      "customization": "h-3 rounded-full bg-stone-100",
+      "indicator": "bg-gradient-to-r from-pink-500 to-orange-500 rounded-full"
+    }
+  },
+  "visual_assets": {
+    "images": [
+      {
+        "category": "texture",
+        "url": "https://images.unsplash.com/photo-1614619838981-a5d41d4dda42?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Nzd8MHwxfHNlYXJjaHwxfHxhYnN0cmFjdCUyMHB1bmphYmklMjBjdWx0dXJlJTIwcGF0dGVybiUyMG1pbmltYWxpc3RpY3xlbnwwfHx8fDE3NzM4OTg0ODN8MA&ixlib=rb-4.1.0&q=85",
+        "description": "Subtle fabric texture for background overlays (use with low opacity)"
+      }
+    ],
+    "icons": {
+      "library": "lucide-react",
+      "mapping": {
+        "audio": "Volume2",
+        "settings": "Settings",
+        "back": "ArrowLeft",
+        "correct": "Check",
+        "wrong": "X",
+        "reveal": "Eye"
+      }
+    }
+  },
+  "universal_guidelines": {
+    "general": [
+      "Use 'Manrope' for all UI text and 'Noto Sans Gurmukhi' for all Punjabi text.",
+      "NEVER use generic system fonts.",
+      "Ensure touch targets are at least 44px for mobile.",
+      "Use 'sonner' for toast notifications.",
+      "Add 'data-testid' to all interactive elements."
+    ],
+    "motion": [
+      "Use 'framer-motion' for complex animations (swipes, layout shifts).",
+      "Use 'transition-all duration-200 ease-out' for simple UI states.",
+      "Flashcards must have a spring physics feel."
+    ],
+    "accessibility": [
+      "Text must meet APCA contrast standards against backgrounds.",
+      "Focus states must be visible (ring-2 ring-offset-2 ring-pink-500).",
+      "Support keyboard navigation for flashcards (Left Arrow = Wrong, Right Arrow = Correct, Space = Reveal)."
+    ]
+  },
+  "instructions_to_main_agent": [
+    "1. Setup: Install 'framer-motion', 'lucide-react', 'clsx', 'tailwind-merge'.",
+    "2. Theme: Apply the colors in tailwind.config.js immediately.",
+    "3. Components: Create the 'LetterGridItem' and 'Flashcard' first as they are core.",
+    "4. State Management: Use a simple React Context or Zustand for tracking mastery progress.",
+    "5. Database: Ensure MongoDB schema stores { letter: String, attempts: Number, correct: Number, history: [Boolean] }.",
+    "6. Routing: Use React Router. '/', '/select', '/study', '/stats'.",
+    "7. Mobile: Verify padding and tap targets on mobile view."
+  ]
+}

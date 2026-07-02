@@ -1,0 +1,19 @@
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: 'Manrope', sans-serif;
+  background-color: #FAFAF9;
+  overflow-x: hidden;
+}
+
+.gurmukhi {
+  font-family: 'Noto Sans Gurmukhi', sans-serif;
+}
+
+/* Prevent text selection during swipe */
+.flashcard-container {
+  user-select: none;
+  -webkit-user-select: none;
+}
