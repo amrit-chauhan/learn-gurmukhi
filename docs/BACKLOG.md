@@ -43,7 +43,7 @@ updates `docs/PRD.md` and flips statuses here after each batch.
 
 ## F-001: Bot / DDoS protection
 
-- **Status:** todo
+- **Status:** done (merged)
 - **Depends on:** none
 - **Collides with:** F-003 (`backend/server.py`)
 - **Parallel-safe:** yes (pair with F-004)
@@ -150,7 +150,7 @@ rate-limiter, added afterward in Batch 2, should cover the new write routes.)
 
 ## F-004: Writing / tracing mode
 
-- **Status:** todo
+- **Status:** done (merged)
 - **Depends on:** F-002 (uses restructured alphabet grouping), F-003 (uses routing + nav shell)
 - **Collides with:** F-002 (`backend/data/alphabet_data.py`, if metadata added), F-003 (`frontend/src/App.js`, `frontend/src/pages/Home.jsx`)
 - **Parallel-safe:** yes (pair with F-001)
@@ -203,4 +203,22 @@ touch `docs/PRD.md` or this backlog.
   - *Flag (open):* pre-existing global `progress`/`user_stats` docs have no
     `profile_id` and won't surface under a seeded profile. A one-time migration is
     needed only if preserving current global progress matters — not written yet.
+
+### Batch 2
+
+Note: both Batch-2 subagents hit a session limit before finishing, so the
+coordinator implemented F-001 and F-004 directly in the main tree.
+
+- **F-001 — Bot/DDoS protection.** slowapi per-IP rate limiting: generous global
+  default (`240/minute`) on all routes via `SlowAPIMiddleware` + tighter
+  `60/minute` on write endpoints via `@limiter.limit` decorators. Configurable
+  through `RATE_LIMIT_{ENABLED,DEFAULT,WRITE}`. `docs/DEPLOYMENT.md` documents the
+  primary Cloudflare free-tier defence. Verified: TestClient shows write endpoint
+  returns 429 past the limit while reads are unaffected.
+- **F-004 — Writing/tracing mode.** `/writing` page with trace (outlined guide
+  glyph) + free-draw sub-modes, pointer canvas, clear/prev/next, and a reveal
+  panel showing 3 bundled Gurmukhi faces (Noto Sans, Noto Serif, Baloo Paaji 2).
+  Fonts committed under `frontend/src/fonts/`. Verified: all changed/new files
+  pass a Babel parse; full webpack build confirmation pending (registry install
+  was slow/flaky in the build env).
 
