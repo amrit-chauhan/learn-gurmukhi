@@ -10,6 +10,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { RotateCcw, Settings, BarChart2, Flame, Zap, ChevronRight } from 'lucide-react';
 import { useProgress } from '../context/ProgressContext';
+import { useProfile } from '../context/ProfileContext';
 import { useSettings } from '../context/SettingsContext';
 import { useStats } from '../hooks/useStats';
 import SettingsModal from '../components/SettingsModal';
@@ -51,6 +52,7 @@ function StreakBanner({ stats }) {
 export default function Home() {
   const navigate = useNavigate();
   const { alphabet, getMastery, resetProgress } = useProgress();
+  const { activeProfile } = useProfile();
   const { settings } = useSettings();
   const stats = useStats();
   const [showSettings, setShowSettings] = useState(false);
@@ -88,6 +90,17 @@ export default function Home() {
         <p className="mt-2 text-base text-stone-500 font-medium">
           Master the Gurmukhi alphabet
         </p>
+
+        {activeProfile && (
+          <button
+            data-testid="profile-chip"
+            onClick={() => navigate('/settings')}
+            className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-stone-200 shadow-sm hover:shadow-md active:scale-[0.98] transition-all"
+          >
+            <span className="text-lg leading-none" aria-hidden>{activeProfile.avatar}</span>
+            <span className="text-sm font-bold text-stone-700">{activeProfile.name}</span>
+          </button>
+        )}
 
         <StatsBar
           studiedCount={studiedCount}

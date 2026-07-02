@@ -18,7 +18,14 @@ from starlette.middleware.cors import CORSMiddleware
 
 import database  # ensures Motor client is created on startup
 from config import settings
-from routes import alphabet_router, progress_router, tts_router, stats_router, streak_router
+from routes import (
+    alphabet_router,
+    progress_router,
+    tts_router,
+    stats_router,
+    streak_router,
+    profile_router,
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -55,3 +62,4 @@ app.include_router(progress_router)
 app.include_router(tts_router)
 app.include_router(stats_router)
 app.include_router(streak_router)
+app.include_router(profile_router)

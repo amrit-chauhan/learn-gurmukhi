@@ -1,10 +1,8 @@
 """
 Progress repository – raw MongoDB operations only.
 
-Responsibilities:
-  - Read all progress documents
-  - Insert or update a single letter's history
-  - Delete all progress documents
+Every document carries a `profile_id` and every query is scoped to it, so
+each profile has an independent set of per-letter histories.
 
 No business logic, no formatting – that belongs in the service layer.
 """
@@ -15,33 +13,31 @@ from database import db
 from config import settings
 
 
-async def get_all() -> List[Dict[str, Any]]:
-    """Return every progress document (without the _id field)."""
-    return await db.progress.find({}, {"_id": 0}).to_list(1000)
+async def get_all(profile_id: str) -> List[Dict[str, Any]]:
+    """Return every progress document for *profile_id* (without the _id field)."""
+    return await db.progress.find(
+        {"profile_id": profile_id}, {"_id": 0}
+    ).to_list(1000)
 
 
-async def upsert(letter_id: str, correct: bool) -> None:
+async def upsert(profile_id: str, letter_id: str, correct: bool) -> None:
     """
-    Append *correct* to the history for *letter_id*.
+    Append *correct* to the history for *letter_id* within *profile_id*.
     Creates the document if it does not exist.
     Trims history to the most recent `settings.progress_history_cap` entries.
     """
-    existing = await db.progress.find_one({"letter_id": letter_id})
+    key = {"profile_id": profile_id, "letter_id": letter_id}
+    existing = await db.progress.find_one(key)
 
     if existing:
         history: List[bool] = existing.get("history", [])
         history.append(correct)
         history = history[-settings.progress_history_cap :]
-        await db.progress.update_one(
-            {"letter_id": letter_id},
-            {"$set": {"history": history}},
-        )
+        await db.progress.update_one(key, {"$set": {"history": history}})
     else:
-        await db.progress.insert_one(
-            {"letter_id": letter_id, "history": [correct]}
-        )
+        await db.progress.insert_one({**key, "history": [correct]})
 
 
-async def reset_all() -> None:
-    """Delete every progress document – used by the reset endpoint."""
-    await db.progress.delete_many({})
+async def reset_all(profile_id: str) -> None:
+    """Delete every progress document for *profile_id*."""
+    await db.progress.delete_many({"profile_id": profile_id})
