@@ -15,16 +15,18 @@ import pytest
 import requests
 import os
 import sys
+import pathlib
 from datetime import date, timedelta
 
 # Add backend dir to path for direct service tests
-sys.path.insert(0, "/app/backend")
+_REPO_ROOT = pathlib.Path(__file__).resolve().parent.parent.parent
+sys.path.insert(0, str(_REPO_ROOT / "backend"))
 
 BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "").rstrip("/")
 if not BASE_URL:
     # fallback to file-based env
     try:
-        with open("/app/frontend/.env") as f:
+        with open(_REPO_ROOT / "frontend" / ".env") as f:
             for line in f:
                 if line.startswith("REACT_APP_BACKEND_URL="):
                     BASE_URL = line.strip().split("=", 1)[1].rstrip("/")

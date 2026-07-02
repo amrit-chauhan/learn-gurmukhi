@@ -7,12 +7,8 @@ GET /api/tts/{letter_id}?type=ai     →  AI-generated audio (cached to disk)
 
 HTTP status mapping:
   200  – MP3 stream returned
-  404  – letter_id not found, or type=human requested but no human file exists
-  503  – AI TTS not configured (missing API key)
-  500  – AI TTS generation failed
+  404  – letter_id not found, or requested voice type has no cached file
 """
-
-import io
 
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import Response
@@ -40,9 +36,5 @@ async def get_tts(
         audio_bytes = await tts_service.get_audio(letter_id, voice_type=type)
     except LookupError as exc:
         raise HTTPException(status_code=404, detail=str(exc))
-    except RuntimeError as exc:
-        detail = str(exc)
-        status = 503 if "not configured" in detail else 500
-        raise HTTPException(status_code=status, detail=detail)
 
     return Response(content=audio_bytes, media_type="audio/mpeg", headers=_CACHE_HEADERS)

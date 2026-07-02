@@ -15,8 +15,9 @@ import pathlib
 
 BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', '').rstrip('/')
 
-AI_CACHE_DIR = pathlib.Path('/app/backend/data/audio/ai_cache')
-HUMAN_AUDIO_DIR = pathlib.Path('/app/backend/data/audio/human')
+_BACKEND_DIR = pathlib.Path(__file__).resolve().parent.parent
+AI_CACHE_DIR = _BACKEND_DIR / 'data' / 'audio' / 'ai_cache'
+HUMAN_AUDIO_DIR = _BACKEND_DIR / 'data' / 'audio' / 'human'
 
 
 class TestAudioFilePersistence:

@@ -27,8 +27,7 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # ── startup ───────────────────────────────────────────────────────────
-    # All audio (human + AI) is pre-generated and stored on disk.
-    # New letters generate AI audio on first request and cache to disk.
+    # All audio (human + AI) is pre-generated and served as static files.
     from pathlib import Path
     base = Path(__file__).parent / "data" / "audio"
     human_count = len(list((base / "human").glob("*.mp3")))

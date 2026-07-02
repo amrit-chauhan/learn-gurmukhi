@@ -19,7 +19,7 @@ class TestAlphabet:
     def test_get_alphabet_count(self):
         r = requests.get(f"{BASE_URL}/api/alphabet")
         data = r.json()
-        assert len(data) == 60
+        assert len(data) == 70
 
     def test_get_alphabet_fields(self):
         r = requests.get(f"{BASE_URL}/api/alphabet")

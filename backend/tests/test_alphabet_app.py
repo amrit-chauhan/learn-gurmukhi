@@ -13,11 +13,11 @@ class TestAlphabet:
         r = requests.get(f"{BASE_URL}/api/alphabet")
         assert r.status_code == 200
 
-    def test_get_alphabet_returns_60_letters(self):
+    def test_get_alphabet_returns_70_letters(self):
         r = requests.get(f"{BASE_URL}/api/alphabet")
         data = r.json()
         assert isinstance(data, list)
-        assert len(data) == 60, f"Expected 60 letters, got {len(data)}"
+        assert len(data) == 70, f"Expected 70 letters, got {len(data)}"
 
     def test_alphabet_has_required_fields(self):
         r = requests.get(f"{BASE_URL}/api/alphabet")

@@ -13,9 +13,9 @@ Additional requests:
 
 ## User Choices
 - Romanization + audio pronunciation button
-- Audio: Human voice clips for 56/70 letters; AI TTS (OpenAI nova) for remaining 14 — AI audio cached to disk
+- Audio: human voice clips for most letters; AI-generated audio (OpenAI TTS, nova voice) for the remainder — all files are pre-generated and committed to the repo as static mp3s (no live generation at runtime)
 - All letters included (consonants, vowels, matras, special marks) + 10 Punjabi numerals
-- No specific design preference (warm Phulkari theme applied)
+- No specific design preference (warm Phulkari theme applied — see `docs/design_guidelines.json`)
 - Time Tracker: Stats on a new /stats page
 - App time tracking: only when tab is active/focused
 - Time display format: "2h 34m"
@@ -31,8 +31,8 @@ backend/
 ├── data/
 │   ├── alphabet_data.py           ← 70 letters + numbers with audio_file field
 │   └── audio/
-│       ├── human/                 ← 54 real mp3s from discoversikhism.com
-│       └── ai_cache/              ← 14 AI-generated mp3s (persistent disk cache)
+│       ├── human/                 ← real mp3s from discoversikhism.com
+│       └── ai_cache/              ← pre-generated AI mp3s (static, committed to repo)
 ├── models/
 │   ├── progress.py                ← Pydantic schemas for progress domain
 │   └── stats.py                   ← Pydantic schemas for stats domain
@@ -42,7 +42,7 @@ backend/
 ├── services/
 │   ├── alphabet_service.py       ← letter lookup + has_human_audio enrichment
 │   ├── progress_service.py       ← progress formatting + delegation
-│   ├── tts_service.py            ← serves human mp3 or AI-generated audio
+│   ├── tts_service.py            ← serves human or AI mp3 from disk (static lookup only)
 │   └── stats_service.py          ← time-tracking business logic
 └── routes/
     ├── __init__.py               ← re-exports all routers
@@ -83,11 +83,13 @@ frontend/src/
 ```
 
 ## Audio Architecture
-- **56 letters**: Real human recordings from discoversikhism.com (stored in `/data/audio/human/`)
-- **14 letters**: AI TTS via OpenAI (nova voice, tts-1) — generated on first request, cached to `/data/audio/ai_cache/`
-- AI-only letters: v_i (ਇ), m_aa (ਕਾ), tippi (ੰ), addak (ੱ), nums 0-9
+- Human recordings from discoversikhism.com, stored in `backend/data/audio/human/`
+- Letters without a human recording use a pre-generated AI voice (OpenAI TTS, nova), stored in `backend/data/audio/ai_cache/`
+- Both directories are static, committed assets — the backend does not call any external TTS API at runtime, it only reads files from disk
+- AI-only letters: v_i (ਇ), m_aa (ਕਾ), tippi (ੰ), addak (ੱ), nums 0-9, and a few others
 - API: `GET /api/tts/{letter_id}?type=human|ai|auto`
 - Frontend: dual buttons per card (H badge = human, AI badge = AI voice); single AI button when no human audio
+- If a new letter is added later without an audio file, `/api/tts/{id}` returns 404 for that letter until a file is added — there is no automatic generation fallback (see "Removed" section below)
 
 ## Routes
 - `/` — Home: mode selection, stats overview, nav to /stats and /settings
@@ -109,16 +111,15 @@ frontend/src/
 - Session results screen with score + wrong answers list
 - Reset progress button
 
-### Audio (2026-02 — Major Update)
-- 54 real human voice mp3 clips from discoversikhism.com for 56 letter mappings
-- AI TTS (OpenAI nova) for remaining 14 letters (persistent disk cache)
-- ALL 70 AI audio files pre-generated and stored permanently on disk at startup
-- Total on-disk: 54 human mp3s (~572KB) + 70 AI mp3s (~1.5MB) = ~2MB of audio
-- Client-side preloader: on page load, all 126 audio files downloaded in background (concurrency=6)
+### Audio
+- Real human voice mp3 clips from discoversikhism.com for the majority of letters
+- Pre-generated AI voice (OpenAI TTS, nova) for the remaining letters — generated once, permanently committed to disk
+- Total on-disk: ~572KB human + ~1.5MB AI = ~2MB of audio
+- Client-side preloader: on page load, all audio files downloaded in background (concurrency=6)
 - In-memory blob URL cache ensures instant playback with zero network wait
-- HTTP Cache-Control: public, max-age=86400 set on backend (CDN overrides in preview env)
+- HTTP Cache-Control: public, max-age=86400 set on backend
 - Dual audio buttons on flashcard: H (green badge) = human voice, AI (blue badge) = AI voice
-- Settings: Voice Preference toggle (Human / AI Voice) 
+- Settings: Voice Preference toggle (Human / AI Voice)
 - API: `?type=human|ai|auto` query parameter
 
 ### Spaced Repetition
@@ -130,25 +131,28 @@ frontend/src/
 - Default multiplier: 3×
 - Avoid back-to-back toggle
 
-### Time Tracker (added 2026-02)
+### Time Tracker
 - App time: tracks only when browser tab is active (Page Visibility API)
 - Practice time: tracks per study session
 - Stats page at /stats: Today + All Time sections, "2h 34m" format
 - MongoDB collection: user_stats
 
-### Streak / Daily Goal (added 2026-02)
+### Streak / Daily Goal
 - Grace day rule: 1 missed day per ISO calendar week forgiven
 - Streak fires when Study page mounts
 - Home page: amber flame banner showing streak count
 
-### Stats Page (added 2026-02)
+### Stats Page
 - Tabbed hub: Overview | Letters | Time | Streak
 - Overview: Recharts PieChart donut + 4 mastery cards
 - Letters: 60-letter sortable grid with mastery borders + bottom sheet modal
 
-### 3D Card Flip (added 2026-02)
+### 3D Card Flip
 - Tap anywhere on card flips it with CSS 3D animation
 - Audio button guard: doesn't trigger flip (stopPropagation)
+
+## Removed (repo cleanup)
+- Live AI TTS generation via the proprietary `emergentintegrations` package and `EMERGENT_LLM_KEY` was removed. All AI-voice audio was already pre-generated and committed to `backend/data/audio/ai_cache/`, so the backend now only ever reads static files — no external API call, no vendor lock-in, no custom pip index required.
 
 ## Core Data Models
 ```
@@ -164,11 +168,8 @@ alphabet:    { id, gurmukhi, romanization, tts_text, name, category, audio_file:
 - Learning (amber): everything else with attempts
 - New (grey): 0 attempts
 
-## 3rd Party Integrations
-- OpenAI TTS (nova voice, tts-1) via Emergent LLM Key — for 14 AI-only letters only
-
 ## P1 — Backlog
-- [ ] Auto-play audio on card load (user suggested, pending confirmation)
+- [ ] Auto-play audio on card load
 - [ ] Stats page: per-letter history charts (sparkline)
 - [ ] Custom letter groups / saved sets
 - [ ] Offline support (cache TTS audio)
