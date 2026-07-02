@@ -60,29 +60,29 @@ def _calculate_streak(practiced_dates: List[str], today: str) -> int:
     return streak
 
 
-async def checkin() -> int:
+async def checkin(profile_id: str) -> int:
     """
-    Mark today as practiced.
+    Mark today as practiced for *profile_id*.
 
     Recalculates the current streak and persists it as the longest streak
     if it is a new personal best.  Returns the current streak value.
     """
     today = date.today().isoformat()
-    await streak_repo.checkin(today)
+    await streak_repo.checkin(profile_id, today)
 
-    data = await streak_repo.get_streak_data()
+    data = await streak_repo.get_streak_data(profile_id)
     current = _calculate_streak(data["practiced_dates"], today)
 
     if current > data.get("longest_streak", 0):
-        await streak_repo.update_longest_streak(current)
+        await streak_repo.update_longest_streak(profile_id, current)
 
     return current
 
 
-async def get_streak() -> Dict[str, Any]:
-    """Return current streak, longest streak, and whether the user practiced today."""
+async def get_streak(profile_id: str) -> Dict[str, Any]:
+    """Return current streak, longest streak, and whether *profile_id* practiced today."""
     today = date.today().isoformat()
-    data = await streak_repo.get_streak_data()
+    data = await streak_repo.get_streak_data(profile_id)
     current = _calculate_streak(data["practiced_dates"], today)
     longest = max(data.get("longest_streak", 0), current)
 
