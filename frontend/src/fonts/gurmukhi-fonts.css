@@ -1,0 +1,38 @@
+/**
+ * Bundled Gurmukhi fonts for the Writing / Tracing mode.
+ *
+ * These woff2 files are the `gurmukhi` unicode-range subsets pulled from Google
+ * Fonts and committed into the repo, so glyph rendering (dotted guide + the three
+ * reveal variants) does NOT depend on a network CDN at runtime. webpack fingerprints
+ * and copies them into the build.
+ *
+ * Three distinct faces are provided to show real-world / handwritten variation of
+ * the same Unicode character:
+ *   - Noto Sans Gurmukhi   -> clean, modern sans (also used elsewhere in the app)
+ *   - Noto Serif Gurmukhi  -> traditional serifed face
+ *   - Baloo Paaji 2        -> rounded, joined display face (handwriting-style)
+ */
+
+@font-face {
+  font-family: 'Noto Sans Gurmukhi';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('./noto-sans-gurmukhi.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Noto Serif Gurmukhi';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('./noto-serif-gurmukhi.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Baloo Paaji 2';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('./baloo-paaji-2-gurmukhi.woff2') format('woff2');
+}

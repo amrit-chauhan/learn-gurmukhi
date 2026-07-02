@@ -8,6 +8,7 @@ import Home from './pages/Home';
 import LetterSelect from './pages/LetterSelect';
 import Study from './pages/Study';
 import Stats from './pages/Stats';
+import Tracing from './pages/Tracing';
 import ProfileSelect from './pages/ProfileSelect';
 import Settings from './pages/Settings';
 import './App.css';
@@ -44,6 +45,7 @@ function AppRoutes() {
         <Route path="/" element={<RequireProfile><Home /></RequireProfile>} />
         <Route path="/select" element={<RequireProfile><LetterSelect /></RequireProfile>} />
         <Route path="/study" element={<RequireProfile><Study /></RequireProfile>} />
+        <Route path="/writing" element={<RequireProfile><Tracing /></RequireProfile>} />
         <Route path="/stats" element={<RequireProfile><Stats /></RequireProfile>} />
         <Route path="/settings" element={<RequireProfile><Settings /></RequireProfile>} />
       </Routes>
