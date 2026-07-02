@@ -7,9 +7,10 @@ PATCH /api/profiles/{id}         →  edit a profile's name / avatar
 POST  /api/profiles/{id}/reset   →  wipe that profile's progress + stats + streak
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 
 from models.profile import ProfileCreate, ProfileUpdate
+from rate_limit import limiter, WRITE_LIMIT
 import services.profile_service as profile_service
 
 router = APIRouter(prefix="/api", tags=["profiles"])
@@ -21,7 +22,8 @@ async def list_profiles():
 
 
 @router.post("/profiles", summary="Create a new profile")
-async def create_profile(data: ProfileCreate):
+@limiter.limit(WRITE_LIMIT)
+async def create_profile(request: Request, data: ProfileCreate):
     try:
         return await profile_service.create_profile(data.name, data.avatar)
     except ValueError as exc:
@@ -29,7 +31,8 @@ async def create_profile(data: ProfileCreate):
 
 
 @router.patch("/profiles/{profile_id}", summary="Edit a profile's name / avatar")
-async def update_profile(profile_id: str, data: ProfileUpdate):
+@limiter.limit(WRITE_LIMIT)
+async def update_profile(request: Request, profile_id: str, data: ProfileUpdate):
     updated = await profile_service.update_profile(profile_id, data.name, data.avatar)
     if updated is None:
         raise HTTPException(status_code=404, detail="Profile not found")
@@ -37,6 +40,7 @@ async def update_profile(profile_id: str, data: ProfileUpdate):
 
 
 @router.post("/profiles/{profile_id}/reset", summary="Reset a profile's progress and stats")
-async def reset_profile(profile_id: str):
+@limiter.limit(WRITE_LIMIT)
+async def reset_profile(request: Request, profile_id: str):
     await profile_service.reset_profile(profile_id)
     return {"ok": True}
