@@ -77,7 +77,7 @@ no WAF custom rules beyond the one documented rate-limit rule. Do not touch
 
 ## F-002: Content restructure (teaching order + numerals subheading)
 
-- **Status:** todo
+- **Status:** done (merged)
 - **Depends on:** none
 - **Collides with:** F-004 (`backend/data/alphabet_data.py`)
 - **Parallel-safe:** yes (pair with F-003)
@@ -110,7 +110,7 @@ behavior working. Do not touch `docs/PRD.md` or this backlog.
 
 ## F-003: User profiles (5 selectable, avatars, settings, persistence)
 
-- **Status:** todo
+- **Status:** done (merged)
 - **Depends on:** none
 - **Collides with:** F-001 (`backend/server.py`), F-004 (`frontend/src/App.js`, `frontend/src/pages/Home.jsx`)
 - **Parallel-safe:** yes (pair with F-002)
@@ -186,4 +186,21 @@ touch `docs/PRD.md` or this backlog.
 
 ## Done
 
-_(nothing yet)_
+### Batch 1
+
+- **F-002 — Content restructure.** Added a `group` field to all 70 alphabet entries;
+  selection screen now renders ordered, labelled sections with Numbers split under
+  its own subheading. Group ids for F-004 to consume: `vowel_carriers`,
+  `consonants_{sibilant,velar,palatal,retroflex,dental,labial,semivowel}`, `nukta`,
+  `vowels`, `matras`, `special`, `numbers`.
+  - *Flag:* dataset omits ੜ (rara), so the Antim Toli row has 4 letters — intentional
+    (count stays 70).
+- **F-003 — User profiles.** End-to-end `profile_id` via `X-Profile-Id` header +
+  `get_profile_id` FastAPI dependency (falls back to `"default"` for header-less
+  clients). New `profiles` collection (5 seeded), per-profile progress/stats/streak,
+  `ProfileSelect` + `Settings` pages, `RequireProfile` gate. New write routes for
+  F-001's rate-limiter to cover: `POST /api/profiles`, `POST /api/profiles/{id}/reset`.
+  - *Flag (open):* pre-existing global `progress`/`user_stats` docs have no
+    `profile_id` and won't surface under a seeded profile. A one-time migration is
+    needed only if preserving current global progress matters — not written yet.
+
