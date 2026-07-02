@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { preloadAllAudio } from '../utils/audioPreloader';
+import { computeMastery } from '../utils/mastery';
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
 
@@ -54,13 +55,7 @@ export function ProgressProvider({ children }) {
 
   const getMastery = useCallback((letterId) => {
     const history = progress[letterId]?.history || [];
-    if (history.length === 0) return 'new';
-    const last10 = history.slice(-10);
-    const correct = last10.filter(Boolean).length;
-    const wrong = last10.length - correct;
-    if (last10.length >= 10 && correct === 10) return 'mastered';
-    if (wrong > 3) return 'struggling';
-    return 'learning';
+    return computeMastery(history);
   }, [progress]);
 
   return (
