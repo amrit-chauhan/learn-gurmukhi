@@ -2,8 +2,14 @@
  * ProfileContext
  *
  * Holds the list of selectable profiles and the currently active one.
- * The active profile id is persisted to localStorage (mirroring
- * SettingsContext) so returning users skip the selection screen.
+ *
+ * The profiles themselves — and all of their progress/stats — live on the
+ * server (MongoDB) and are shared across every device/browser that reaches
+ * this deployment; they are NOT local to one browser. The only thing stored
+ * locally is the *active profile id* (in localStorage, mirroring
+ * SettingsContext), purely so a returning visitor on the same browser skips
+ * the selection screen. Clearing browser storage loses only that shortcut,
+ * never the profile or its progress.
  *
  * The active profile id is also published as the default axios
  * `X-Profile-Id` header so every API call (progress, stats, streak) is

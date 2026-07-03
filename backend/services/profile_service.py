@@ -7,7 +7,12 @@ Responsibilities:
   - Create / edit profiles
   - Reset a single profile: fan out to progress + stats + streak repositories
 
-Profiles are a local convenience selector (avatar + name), not auth identities.
+Profiles are server-persisted (MongoDB) and shared across all devices/browsers
+that reach this deployment — not local to one browser. They are a lightweight
+selector (avatar + name), not auth identities: there is no login, so everyone
+using this deployment picks from the same shared set. A returning visitor's
+*last pick* is remembered client-side purely as a UX shortcut; the profiles and
+their progress themselves always live on the server.
 """
 
 import uuid
