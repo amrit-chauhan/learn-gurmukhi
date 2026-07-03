@@ -78,7 +78,11 @@ export default function Study() {
 
       <div className="flex-1 min-h-0 flex flex-col items-center justify-center px-5 py-4">
         <Flashcard
-          key={currentCard.id}
+          // Key by deck position, not letter id: a deck can repeat the same
+          // letter on consecutive cards, and a shared key would reuse the old
+          // Flashcard instance — leaving its swipe transform parked off-screen
+          // (a blank card) and its flip state stale. Position is always unique.
+          key={currentIndex}
           letter={currentCard}
           mode={mode}
           revealed={revealed}

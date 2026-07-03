@@ -42,7 +42,7 @@ export default function Flashcard({ letter, mode, revealed, onReveal, onCorrect,
   };
 
   const AudioButtons = () => (
-    <div className="absolute top-4 right-4 flex flex-col gap-1.5 z-10">
+    <div className="flex flex-col gap-1.5">
       {/* Human voice button — only shown when human audio exists */}
       {hasHuman && (
         <button
@@ -99,6 +99,12 @@ export default function Flashcard({ letter, mode, revealed, onReveal, onCorrect,
         <span className="text-red-700 font-bold text-sm tracking-wide">WRONG</span>
       </motion.div>
 
+      {/* Audio controls live on the outer card, not inside the flip faces, so
+          they render exactly once and are never mirrored by the 3D rotation. */}
+      <div className="absolute top-4 right-4 z-30">
+        <AudioButtons />
+      </div>
+
       {/* 3D flip stage */}
       <div style={{ perspective: '1200px', height: 420 }}>
         <div
@@ -123,8 +129,6 @@ export default function Flashcard({ letter, mode, revealed, onReveal, onCorrect,
             className="rounded-3xl shadow-2xl border border-stone-100 bg-white overflow-hidden"
           >
             <div className="absolute inset-0 flex flex-col items-center justify-center p-8">
-              <AudioButtons />
-
               <span
                 className="text-xs font-semibold uppercase tracking-widest text-stone-400"
                 style={{ fontFamily: "'Manrope', sans-serif" }}
@@ -162,8 +166,6 @@ export default function Flashcard({ letter, mode, revealed, onReveal, onCorrect,
             className="rounded-3xl shadow-2xl border border-pink-100 bg-white overflow-hidden"
           >
             <div className="absolute inset-0 flex flex-col items-center justify-center p-8">
-              <AudioButtons />
-
               {/* Small question reference at top */}
               <p
                 className="text-stone-300 leading-none text-center"
