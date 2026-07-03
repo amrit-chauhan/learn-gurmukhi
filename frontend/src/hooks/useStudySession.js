@@ -11,7 +11,7 @@
  * stays a pure renderer with no business logic.
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProgress } from '../context/ProgressContext';
 import { useSettings } from '../context/SettingsContext';
@@ -27,6 +27,12 @@ export function useStudySession(mode, selectedIds, sessionLength = null) {
   const [revealed, setRevealed] = useState(false);
   const [sessionResults, setSessionResults] = useState([]);
   const [done, setDone] = useState(false);
+
+  // Index of the card already answered, to ignore duplicate answers for the
+  // same card. A single swipe can fire onCorrect/onWrong more than once (drag
+  // end + click/keyboard), which would otherwise advance the index twice and
+  // run past the end of the deck without ever hitting the completion check.
+  const answeredIdxRef = useRef(-1);
 
   /** Build a deck from the given letter subset using current SR settings. */
   const buildDeck = useCallback(
@@ -65,20 +71,34 @@ export function useStudySession(mode, selectedIds, sessionLength = null) {
 
   /** Record the user's answer and advance to the next card. */
   const handleAnswer = useCallback(
-    async (correct) => {
-      const card = cards[currentIndex];
+    (correct) => {
+      const idx = currentIndex;
+      const card = cards[idx];
       if (!card) return;
-      await updateProgress(card.id, correct);
+      // Ignore a duplicate answer for the same card (swipe + click/keyboard).
+      if (answeredIdxRef.current === idx) return;
+      answeredIdxRef.current = idx;
+
       setSessionResults((prev) => [...prev, { letter: card, correct }]);
       setRevealed(false);
-      if (currentIndex + 1 >= cards.length) {
+      if (idx + 1 >= cards.length) {
         setDone(true);
       } else {
-        setCurrentIndex((i) => i + 1);
+        setCurrentIndex(idx + 1);
       }
+      // Persist best-effort; don't block advancing the UI on the network.
+      updateProgress(card.id, correct);
     },
     [cards, currentIndex, updateProgress]
   );
+
+  // Safety net: never leave a permanent blank card. If the index ever lands
+  // past the end of a non-empty deck, treat the session as finished.
+  useEffect(() => {
+    if (cards.length > 0 && currentIndex >= cards.length && !done) {
+      setDone(true);
+    }
+  }, [currentIndex, cards.length, done]);
 
   /** Flip the current card to show the answer. */
   const reveal = useCallback(() => setRevealed(true), []);
@@ -89,6 +109,7 @@ export function useStudySession(mode, selectedIds, sessionLength = null) {
   /** Rebuild the deck and restart the session (used by "Study Again"). */
   const restart = useCallback(() => {
     const selected = alphabet.filter((l) => selectedIds.includes(l.id));
+    answeredIdxRef.current = -1;
     setCards(buildDeck(selected));
     setCurrentIndex(0);
     setRevealed(false);
