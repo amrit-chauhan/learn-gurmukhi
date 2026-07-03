@@ -24,6 +24,7 @@ from config import settings
 from rate_limit import limiter
 from routes import (
     alphabet_router,
+    words_router,
     progress_router,
     tts_router,
     stats_router,
@@ -71,6 +72,7 @@ app.add_middleware(
 
 # ── Routers ───────────────────────────────────────────────────────────────────
 app.include_router(alphabet_router)
+app.include_router(words_router)
 app.include_router(progress_router)
 app.include_router(tts_router)
 app.include_router(stats_router)

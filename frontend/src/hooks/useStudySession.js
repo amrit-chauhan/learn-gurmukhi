@@ -17,10 +17,13 @@ import { useProgress } from '../context/ProgressContext';
 import { useSettings } from '../context/SettingsContext';
 import { buildSRDeck, buildRandomDeck } from '../utils/srAlgorithm';
 
-export function useStudySession(mode, selectedIds, sessionLength = null) {
+export function useStudySession(mode, selectedIds, sessionLength = null, pool = null) {
   const navigate = useNavigate();
   const { alphabet, updateProgress, getMastery } = useProgress();
   const { settings } = useSettings();
+
+  // Source of cards: an explicit pool (e.g. practice words) or the alphabet.
+  const source = pool ?? alphabet;
 
   const [cards, setCards] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -64,10 +67,10 @@ export function useStudySession(mode, selectedIds, sessionLength = null) {
   /** Initial deck build – runs once when the alphabet loads. */
   useEffect(() => {
     if (!selectedIds || !mode) { navigate('/'); return; }
-    if (alphabet.length === 0) return;
-    const selected = alphabet.filter((l) => selectedIds.includes(l.id));
+    if (source.length === 0) return;
+    const selected = source.filter((l) => selectedIds.includes(l.id));
     setCards(buildDeck(selected));
-  }, [selectedIds, mode, alphabet]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [selectedIds, mode, source]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /** Record the user's answer and advance to the next card. */
   const handleAnswer = useCallback(
@@ -108,14 +111,14 @@ export function useStudySession(mode, selectedIds, sessionLength = null) {
 
   /** Rebuild the deck and restart the session (used by "Study Again"). */
   const restart = useCallback(() => {
-    const selected = alphabet.filter((l) => selectedIds.includes(l.id));
+    const selected = source.filter((l) => selectedIds.includes(l.id));
     answeredIdxRef.current = -1;
     setCards(buildDeck(selected));
     setCurrentIndex(0);
     setRevealed(false);
     setSessionResults([]);
     setDone(false);
-  }, [alphabet, selectedIds, buildDeck]);
+  }, [source, selectedIds, buildDeck]);
 
   // ── Derived values ──────────────────────────────────────────────────────
   const correctCount = sessionResults.filter((r) => r.correct).length;

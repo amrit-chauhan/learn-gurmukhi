@@ -8,7 +8,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { RotateCcw, Settings, BarChart2, Flame, Zap, ChevronRight, PenLine } from 'lucide-react';
+import { RotateCcw, Settings, BarChart2, Flame, Zap, ChevronRight, PenLine, BookText } from 'lucide-react';
 import { useProgress } from '../context/ProgressContext';
 import { useProfile } from '../context/ProfileContext';
 import { useSettings } from '../context/SettingsContext';
@@ -176,6 +176,22 @@ export default function Home() {
             </div>
           </button>
         ))}
+
+        {/* ── Practice Words ──────────────────────────────────────── */}
+        <button
+          data-testid="mode-words"
+          onClick={() => navigate('/words')}
+          className="w-full flex items-center gap-4 rounded-2xl bg-white border border-stone-100 p-6 text-left shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-150"
+        >
+          <div className="w-14 h-14 rounded-2xl bg-pink-50 flex items-center justify-center flex-shrink-0 text-pink-600">
+            <BookText className="w-7 h-7" />
+          </div>
+          <div className="flex-1">
+            <h2 className="text-lg font-bold text-stone-900">Practice Words</h2>
+            <p className="text-sm text-stone-500 mt-0.5">Common words, days of the week &amp; numbers 0–100</p>
+          </div>
+          <ChevronRight className="w-4 h-4 text-stone-300 flex-shrink-0" />
+        </button>
 
         {/* ── Writing / tracing mode ──────────────────────────────── */}
         <button
