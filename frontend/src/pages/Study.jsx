@@ -3,7 +3,7 @@
  *
  * Pure renderer – all state and logic lives in hooks.
  * Composes: useStudySession · useAudioPlayer · useKeyboardStudy
- *         + StudyHeader · SessionScore · Flashcard · AnswerButtons · ResultsScreen
+ *         + StudyHeader · SessionScore · Flashcard · ResultsScreen
  */
 
 import React from 'react';
@@ -18,7 +18,6 @@ import { useStreakCheckin } from '../hooks/useStreakCheckin';
 import Flashcard from '../components/Flashcard';
 import StudyHeader from '../components/study/StudyHeader';
 import SessionScore from '../components/study/SessionScore';
-import AnswerButtons from '../components/study/AnswerButtons';
 import ResultsScreen from '../components/study/ResultsScreen';
 
 export default function Study() {
@@ -89,19 +88,31 @@ export default function Study() {
           onPlayAudio={playAudio}
         />
 
-        {/* Permanent swipe-direction hint — always visible below the card */}
+        {/* Swipe hint doubles as the answer control — the small text itself is
+            clickable (swipe left/right also works). Kept intentionally sleek: no
+            button chrome, just tappable text. */}
         <div
-          className="flex items-center justify-between w-full max-w-[340px] mt-3 px-1 select-none pointer-events-none"
+          className="flex items-center justify-between w-full max-w-[340px] mt-3 px-1 select-none"
           data-testid="swipe-hint-bar"
         >
-          <div className="flex items-center gap-1.5 text-red-400">
+          <button
+            type="button"
+            data-testid="answer-wrong"
+            onClick={() => handleAnswer(false)}
+            className="flex items-center gap-1.5 text-red-400 hover:text-red-500 active:scale-95 transition-all"
+          >
             <ArrowLeft className="w-4 h-4" />
             <span className="text-xs font-semibold">Wrong</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-emerald-500">
+          </button>
+          <button
+            type="button"
+            data-testid="answer-correct"
+            onClick={() => handleAnswer(true)}
+            className="flex items-center gap-1.5 text-emerald-500 hover:text-emerald-600 active:scale-95 transition-all"
+          >
             <span className="text-xs font-semibold">Correct</span>
             <ArrowRight className="w-4 h-4" />
-          </div>
+          </button>
         </div>
 
         {/* End session early */}
@@ -113,13 +124,6 @@ export default function Study() {
           End session early
         </button>
       </div>
-
-      {revealed && (
-        <AnswerButtons
-          onCorrect={() => handleAnswer(true)}
-          onWrong={() => handleAnswer(false)}
-        />
-      )}
     </div>
   );
 }
