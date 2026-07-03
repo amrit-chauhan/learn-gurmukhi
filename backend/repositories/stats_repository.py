@@ -1,9 +1,8 @@
 """
 Stats repository – raw MongoDB operations only.
 
-Responsibilities:
-  - Read totals and today's daily stats
-  - Atomically increment time counters (upsert if not present)
+Time-tracking and streak data live in the `user_stats` collection. Every
+document carries a `profile_id`, so counters are independent per profile.
 
 No business logic or formatting – that belongs in the service layer.
 """
@@ -13,10 +12,14 @@ from typing import Dict, Any
 from database import db
 
 
-async def get_stats(today: str) -> Dict[str, int]:
-    """Return totals document and today's daily document, merged into a flat dict."""
-    totals = await db.user_stats.find_one({"type": "totals"}, {"_id": 0}) or {}
-    today_doc = await db.user_stats.find_one({"type": "daily", "date": today}, {"_id": 0}) or {}
+async def get_stats(profile_id: str, today: str) -> Dict[str, int]:
+    """Return totals + today's daily document for *profile_id*, merged into a flat dict."""
+    totals = await db.user_stats.find_one(
+        {"profile_id": profile_id, "type": "totals"}, {"_id": 0}
+    ) or {}
+    today_doc = await db.user_stats.find_one(
+        {"profile_id": profile_id, "type": "daily", "date": today}, {"_id": 0}
+    ) or {}
 
     return {
         "total_app_seconds": totals.get("app_seconds", 0),
@@ -26,9 +29,9 @@ async def get_stats(today: str) -> Dict[str, int]:
     }
 
 
-async def add_time(today: str, app_seconds: int, practice_seconds: int) -> None:
+async def add_time(profile_id: str, today: str, app_seconds: int, practice_seconds: int) -> None:
     """
-    Atomically increment time counters.
+    Atomically increment time counters for *profile_id*.
 
     Builds a $inc payload from whichever values are > 0, then upserts both
     the all-time totals document and today's daily document.
@@ -43,12 +46,17 @@ async def add_time(today: str, app_seconds: int, practice_seconds: int) -> None:
         return
 
     await db.user_stats.update_one(
-        {"type": "totals"},
+        {"profile_id": profile_id, "type": "totals"},
         {"$inc": inc},
         upsert=True,
     )
     await db.user_stats.update_one(
-        {"type": "daily", "date": today},
+        {"profile_id": profile_id, "type": "daily", "date": today},
         {"$inc": inc},
         upsert=True,
     )
+
+
+async def reset_all(profile_id: str) -> None:
+    """Delete every user_stats document for *profile_id* (totals, daily, and streak_data)."""
+    await db.user_stats.delete_many({"profile_id": profile_id})

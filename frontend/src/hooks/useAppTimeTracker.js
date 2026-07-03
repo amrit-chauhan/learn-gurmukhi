@@ -72,7 +72,13 @@ export function useAppTimeTracker() {
           [JSON.stringify({ app_seconds: seconds, practice_seconds: 0 })],
           { type: 'application/json' }
         );
-        navigator.sendBeacon(`${API}/stats/update`, payload);
+        // sendBeacon cannot set custom headers, so pass the active profile id
+        // as a query param (the backend reads it as a fallback).
+        const profileId = axios.defaults.headers.common['X-Profile-Id'];
+        const url = profileId
+          ? `${API}/stats/update?profile_id=${encodeURIComponent(profileId)}`
+          : `${API}/stats/update`;
+        navigator.sendBeacon(url, payload);
       }
     };
     window.addEventListener('pagehide', onPageHide);

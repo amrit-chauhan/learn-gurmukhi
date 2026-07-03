@@ -156,11 +156,24 @@ frontend/src/
 
 ## Core Data Models
 ```
-progress:    { letter_id: str, history: [bool] }
-user_stats:  { type: "totals"|"daily", date?: str, app_seconds: int, practice_seconds: int }
-             { type: "streak_data", practiced_dates: [str], longest_streak: int }
-alphabet:    { id, gurmukhi, romanization, tts_text, name, category, audio_file: str|null, has_human_audio: bool }
+profiles:    { id: str (uuid), name: str, avatar: str }          # server-side, shared across devices
+progress:    { profile_id: str, letter_id: str, history: [bool] }
+user_stats:  { profile_id: str, type: "totals"|"daily", date?: str, app_seconds: int, practice_seconds: int }
+             { profile_id: str, type: "streak_data", practiced_dates: [str], longest_streak: int }
+alphabet:    { id, gurmukhi, romanization, tts_text, name, category, group, audio_file: str|null, has_human_audio: bool }
 ```
+
+### User Profiles (server-shared, no auth)
+Up to 5 profiles (5 seeded on first load) live in the `profiles` collection in
+MongoDB. All progress/stats/streak documents are scoped by `profile_id`, and the
+active profile is passed on every request via the `X-Profile-Id` header (resolved
+by the `get_profile_id` dependency; falls back to `"default"` for header-less
+clients). Profiles are therefore **persisted server-side and shared across every
+device/browser** that reaches the deployment — not local to one browser. There is
+no login: anyone using the deployment picks from the same shared set. The client
+only remembers the *last-picked* profile id in `localStorage` as a UX shortcut to
+skip the selection screen; the profiles and their progress always live on the
+server. (`group` on `alphabet` is the pedagogical section from F-002.)
 
 ## Mastery Logic
 - Mastered (green): last 10 all correct (min 10 attempts)

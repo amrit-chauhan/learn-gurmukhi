@@ -5,7 +5,8 @@
  * User selects a subset, then starts a study session.
  *
  * Selection state lives in useLetterSelection.
- * Category filter tabs use the CATEGORIES constant.
+ * Category filter tabs use the CATEGORIES constant; the grid itself is rendered
+ * as ordered, labelled sections driven by LETTER_GROUPS + each letter's `group`.
  */
 
 import React, { useMemo, useRef, useEffect } from 'react';
@@ -17,7 +18,7 @@ import { useLetterSelection } from '../hooks/useLetterSelection';
 import { estimateDeckSize } from '../utils/srAlgorithm';
 import LetterGridItem from '../components/LetterGridItem';
 import SrBadge from '../components/common/SrBadge';
-import { CATEGORIES } from '../constants/categories';
+import { CATEGORIES, LETTER_GROUPS } from '../constants/categories';
 import { MODE_LABELS } from '../constants/modes';
 
 export default function LetterSelect() {
@@ -57,10 +58,25 @@ export default function LetterSelect() {
     };
   }, []);
 
-  const filtered = useMemo(
-    () => (activeCategory === 'all' ? alphabet : alphabet.filter((l) => l.category === activeCategory)),
-    [alphabet, activeCategory]
-  );
+  // Ordered, labelled sections for the pedagogical layout. Each section pulls
+  // its letters by `group`; when a category filter is active we keep only the
+  // groups belonging to that category so the filter tabs still work. Empty
+  // sections are dropped.
+  const sections = useMemo(() => {
+    const byGroup = new Map();
+    for (const letter of alphabet) {
+      const key = letter.group ?? letter.category;
+      if (!byGroup.has(key)) byGroup.set(key, []);
+      byGroup.get(key).push(letter);
+    }
+    return LETTER_GROUPS
+      .filter((g) => activeCategory === 'all' || g.category === activeCategory)
+      .map((g) => ({ ...g, letters: byGroup.get(g.id) ?? [] }))
+      .filter((s) => s.letters.length > 0);
+  }, [alphabet, activeCategory]);
+
+  // Flat list of the currently-visible letters (drives select-all / counts).
+  const filtered = useMemo(() => sections.flatMap((s) => s.letters), [sections]);
 
   const allSelected = isAllSelected(filtered);
   const estimatedCards = estimateDeckSize(selectedIds.size, settings);
@@ -124,22 +140,37 @@ export default function LetterSelect() {
         </div>
       </div>
 
-      {/* ── Letter grid ────────────────────────────────────────────────── */}
+      {/* ── Letter grid (grouped into pedagogical sections) ─────────────── */}
       <div className="flex-1 px-4 pt-4 pb-32 max-w-2xl mx-auto w-full">
-        <div className="grid grid-cols-5 sm:grid-cols-7 md:grid-cols-8 gap-2.5">
-          {filtered.map((letter) => (
-            <LetterGridItem
-              key={letter.id}
-              letter={letter}
-              selected={selectedIds.has(letter.id)}
-              mastery={getMastery(letter.id)}
-              onToggle={toggle}
-              onDragStart={handleDragStart}
-              onDragEnter={handleDragEnter}
-            />
-          ))}
-        </div>
-        {filtered.length === 0 && (
+        {sections.map((section) => (
+          <section
+            key={section.id}
+            data-testid={`section-${section.id}`}
+            className={
+              section.divider
+                ? 'mt-8 pt-6 border-t border-stone-200'
+                : 'mt-6 first:mt-0'
+            }
+          >
+            <h2 className="text-xs font-bold uppercase tracking-wider text-stone-500 mb-2 px-0.5">
+              {section.label}
+            </h2>
+            <div className="grid grid-cols-5 sm:grid-cols-7 md:grid-cols-8 gap-2.5">
+              {section.letters.map((letter) => (
+                <LetterGridItem
+                  key={letter.id}
+                  letter={letter}
+                  selected={selectedIds.has(letter.id)}
+                  mastery={getMastery(letter.id)}
+                  onToggle={toggle}
+                  onDragStart={handleDragStart}
+                  onDragEnter={handleDragEnter}
+                />
+              ))}
+            </div>
+          </section>
+        ))}
+        {sections.length === 0 && (
           <p className="text-center text-stone-400 mt-8">No letters in this category</p>
         )}
       </div>
