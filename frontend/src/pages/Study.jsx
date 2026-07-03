@@ -62,7 +62,10 @@ export default function Study() {
   if (!currentCard) return null;
 
   return (
-    <div className="min-h-screen bg-stone-50 flex flex-col" style={{ fontFamily: "'Manrope', sans-serif" }}>
+    <div
+      className="h-screen overflow-hidden bg-stone-50 flex flex-col"
+      style={{ fontFamily: "'Manrope', sans-serif", height: '100dvh' }}
+    >
       <StudyHeader
         mode={mode}
         selectedIds={selectedIds}
@@ -74,7 +77,7 @@ export default function Study() {
 
       <SessionScore correctCount={correctCount} wrongCount={wrongCount} />
 
-      <div className="flex-1 flex flex-col items-center justify-center px-5 py-4">
+      <div className="flex-1 min-h-0 flex flex-col items-center justify-center px-5 py-4">
         <Flashcard
           key={currentCard.id}
           letter={currentCard}
