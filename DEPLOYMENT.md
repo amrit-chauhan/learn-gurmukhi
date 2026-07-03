@@ -1,38 +1,56 @@
 # Deploying to Vercel
 
-This is a full-stack app (React frontend + FastAPI backend). Deploy as two
-separate Vercel projects.
+This is a full-stack app (React frontend + FastAPI backend). The recommended
+setup is a **single Vercel project** serving both from one domain, configured by
+the root [`vercel.json`](./vercel.json). Auto-deploy on every GitHub push is
+Vercel's default once the repo is connected.
 
-## Project 1 — Backend (FastAPI)
+## Single project (recommended)
 
-1. Create a new Vercel project.
-2. Set the Root Directory to `backend/`.
-3. Framework Preset: **Other**.
-4. Build & Output Settings: leave as auto-detect.
-5. Set these environment variables in the Vercel dashboard:
+The root `vercel.json` builds both services and routes between them:
+- `frontend/` → built with `@vercel/static-build` (`craco build` → `build/`),
+  served as the site.
+- `backend/server.py` → deployed as a `@vercel/python` serverless function.
+- `/api/*` is routed to the Python function; everything else falls back to the
+  SPA's `index.html`. Static files (JS/CSS/fonts) are served directly.
 
-   | Variable       | Value                                                    |
-   |----------------|-----------------------------------------------------------|
-   | `MONGO_URL`    | Your MongoDB Atlas connection string, e.g. `mongodb+srv://user:pass@cluster.mongodb.net/punjabi` |
-   | `DB_NAME`      | `punjabi_alphabet`                                        |
-   | `CORS_ORIGINS` | `https://your-frontend.vercel.app`                        |
+Because both run on the same domain, the frontend calls the backend at the
+relative path `/api` — so `REACT_APP_BACKEND_URL` is pinned to an empty string in
+`vercel.json`'s build env, and you do **not** need to set it yourself.
 
-6. Deploy → note the deployment URL (e.g. `https://punjabi-api.vercel.app`).
+### Steps
 
-## Project 2 — Frontend (React)
+1. **MongoDB Atlas** — create a free M0 cluster, copy the connection string.
+2. **Import the repo** into Vercel as a new project. Leave the Root Directory at
+   the repo root (do **not** point it at `frontend/` or `backend/` — the root
+   `vercel.json` drives the build).
+3. Set these **environment variables** on the project (used by the backend
+   function at runtime):
 
-1. Create a new Vercel project.
-2. Set the Root Directory to `frontend/`.
-3. Framework Preset: **Create React App**.
-4. Build Command: `yarn build`.
-5. Output Directory: `build`.
-6. Set this environment variable:
+   | Variable       | Value                                                          |
+   |----------------|-----------------------------------------------------------------|
+   | `MONGO_URL`    | Your Atlas connection string, e.g. `mongodb+srv://user:pass@cluster.mongodb.net/` |
+   | `DB_NAME`      | `punjabi_alphabet`                                              |
+   | `CORS_ORIGINS` | Optional — same-origin needs no CORS; leave default `*` or set your domain |
+   | `RATE_LIMIT_*` | Optional — override the F-001 rate limits (see below)          |
 
-   | Variable                 | Value                                              |
-   |---------------------------|----------------------------------------------------|
-   | `REACT_APP_BACKEND_URL`  | The backend URL from Project 1                     |
+4. **Deploy.** The app is live on one URL; the API is under `/<url>/api`.
+5. **Auto-deploy:** with the repo connected, every push to the production branch
+   redeploys automatically — no further setup.
 
-7. Deploy → the app is live.
+> **Note — audio in serverless:** the backend serves pre-generated mp3s from
+> `backend/data/audio/`. `vercel.json` bundles them into the function via
+> `includeFiles: "data/**"` so `/api/tts/{id}` works. If audio 404s after deploy,
+> check that glob against the build logs.
+
+## Alternative: two separate projects
+
+If you'd rather split them (e.g. to scale independently), each subdirectory still
+has its own `backend/vercel.json` and `frontend/vercel.json`. Deploy `backend/`
+(Root Directory `backend/`, env `MONGO_URL` + `DB_NAME` + `CORS_ORIGINS`) and
+`frontend/` (Root Directory `frontend/`, Preset **Create React App**, env
+`REACT_APP_BACKEND_URL` = the backend URL) as two projects. The root
+`vercel.json` is ignored when a project's Root Directory is a subdirectory.
 
 ## Bot & DDoS protection
 
