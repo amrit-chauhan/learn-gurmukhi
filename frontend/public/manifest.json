@@ -1,0 +1,32 @@
+{
+  "short_name": "Learn Gurmukhi",
+  "name": "Learn Gurmukhi — Punjabi Alphabet Flashcards",
+  "description": "Learn the Punjabi (Gurmukhi) alphabet with flashcards, spaced repetition, and audio pronunciation.",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "16x16 32x32 48x48",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#DB2777",
+  "background_color": "#FAFAF9"
+}
