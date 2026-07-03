@@ -13,7 +13,7 @@
 import { useEffect, useRef } from 'react';
 import axios from 'axios';
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+const API = `${process.env.REACT_APP_BACKEND_URL || ''}/api`;
 const FLUSH_INTERVAL_MS = 30_000;
 
 export function useAppTimeTracker() {

@@ -12,7 +12,7 @@
 import { useCallback } from 'react';
 import { getCachedAudio } from '../utils/audioPreloader';
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+const API = `${process.env.REACT_APP_BACKEND_URL || ''}/api`;
 
 export function useAudioPlayer() {
   const play = useCallback(async (letterId, voiceType = 'auto') => {

@@ -11,7 +11,7 @@
  * Voice types:      'human' | 'ai'
  */
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+const API = `${process.env.REACT_APP_BACKEND_URL || ''}/api`;
 
 /** Blob-URL cache – survives for the lifetime of the page */
 const _cache = new Map();

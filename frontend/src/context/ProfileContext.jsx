@@ -21,7 +21,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+const API = `${process.env.REACT_APP_BACKEND_URL || ''}/api`;
 const STORAGE_KEY = 'punjabi_active_profile_id';
 const HEADER = 'X-Profile-Id';
 

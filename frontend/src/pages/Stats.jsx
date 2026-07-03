@@ -20,7 +20,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import { useProgress } from '../context/ProgressContext';
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+const API = `${process.env.REACT_APP_BACKEND_URL || ''}/api`;
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 

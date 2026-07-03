@@ -4,7 +4,7 @@ import { preloadAllAudio } from '../utils/audioPreloader';
 import { computeMastery } from '../utils/mastery';
 import { useProfile } from './ProfileContext';
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+const API = `${process.env.REACT_APP_BACKEND_URL || ''}/api`;
 
 const ProgressContext = createContext(null);
 
