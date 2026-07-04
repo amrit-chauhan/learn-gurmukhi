@@ -46,22 +46,6 @@ export default function WordFlashcard({ word, revealed, onReveal, onCorrect, onW
     if (newFlipped && !revealed) onReveal();
   };
 
-  const AudioButton = () => (
-    <div className="absolute top-4 right-4 z-10">
-      <button
-        onClick={(e) => { e.stopPropagation(); onPlayAudio(word.id); }}
-        className="relative p-2.5 rounded-full bg-stone-100 hover:bg-blue-100 transition-colors group"
-        data-testid="word-audio-button"
-        title="Pronounce (Punjabi voice)"
-      >
-        <Volume2 className="w-5 h-5 text-stone-600 group-hover:text-blue-600" />
-        <span className="absolute -bottom-0.5 -right-0.5 text-[7px] font-bold bg-blue-500 text-white rounded-full w-3.5 h-3.5 flex items-center justify-center leading-none pointer-events-none">
-          AI
-        </span>
-      </button>
-    </div>
-  );
-
   return (
     <motion.div
       drag="x"
@@ -72,6 +56,21 @@ export default function WordFlashcard({ word, revealed, onReveal, onCorrect, onW
       className="relative w-full max-w-[340px] mx-auto cursor-grab active:cursor-grabbing"
       data-testid="word-flashcard"
     >
+      {/* Audio button — rendered once, OUTSIDE the 3D flip stage, so it can't
+          bleed through / mirror onto the reverse face when the card flips. */}
+      <div className="absolute top-4 right-4 z-30">
+        <button
+          onClick={(e) => { e.stopPropagation(); onPlayAudio(word.id); }}
+          className="relative p-2.5 rounded-full bg-stone-100 hover:bg-blue-100 transition-colors group"
+          data-testid="word-audio-button"
+          title="Pronounce (Punjabi voice)"
+        >
+          <Volume2 className="w-5 h-5 text-stone-600 group-hover:text-blue-600" />
+          <span className="absolute -bottom-0.5 -right-0.5 text-[7px] font-bold bg-blue-500 text-white rounded-full w-3.5 h-3.5 flex items-center justify-center leading-none pointer-events-none">
+            AI
+          </span>
+        </button>
+      </div>
       <motion.div
         style={{ opacity: correctOpacity }}
         className="absolute top-5 left-5 z-20 px-3 py-1.5 bg-emerald-100 border-2 border-emerald-500 rounded-full pointer-events-none"
@@ -103,7 +102,6 @@ export default function WordFlashcard({ word, revealed, onReveal, onCorrect, onW
             className="rounded-3xl shadow-2xl border border-stone-100 bg-white overflow-hidden"
           >
             <div className="absolute inset-0 flex flex-col items-center justify-center p-8">
-              <AudioButton />
               <span className="text-xs font-semibold uppercase tracking-widest text-stone-400">
                 {CATEGORY_LABEL[word.category] || 'word'}
               </span>
@@ -125,8 +123,6 @@ export default function WordFlashcard({ word, revealed, onReveal, onCorrect, onW
             className="rounded-3xl shadow-2xl border border-pink-100 bg-white overflow-hidden"
           >
             <div className="absolute inset-0 flex flex-col items-center justify-center p-8">
-              <AudioButton />
-
               {/* Small Gurmukhi reference at top */}
               <p
                 className="text-stone-300 leading-none text-center"

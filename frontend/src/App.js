@@ -8,6 +8,7 @@ import Home from './pages/Home';
 import LetterSelect from './pages/LetterSelect';
 import Study from './pages/Study';
 import WordsHome from './pages/WordsHome';
+import WordSelect from './pages/WordSelect';
 import WordStudy from './pages/WordStudy';
 import Stats from './pages/Stats';
 import Tracing from './pages/Tracing';
@@ -48,6 +49,7 @@ function AppRoutes() {
         <Route path="/select" element={<RequireProfile><LetterSelect /></RequireProfile>} />
         <Route path="/study" element={<RequireProfile><Study /></RequireProfile>} />
         <Route path="/words" element={<RequireProfile><WordsHome /></RequireProfile>} />
+        <Route path="/word-select" element={<RequireProfile><WordSelect /></RequireProfile>} />
         <Route path="/word-study" element={<RequireProfile><WordStudy /></RequireProfile>} />
         <Route path="/writing" element={<RequireProfile><Tracing /></RequireProfile>} />
         <Route path="/stats" element={<RequireProfile><Stats /></RequireProfile>} />

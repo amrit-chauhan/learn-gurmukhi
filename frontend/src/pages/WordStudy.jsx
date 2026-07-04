@@ -1,16 +1,16 @@
 /**
  * WordStudy page
  *
- * Practice-word flashcard session. Reuses the same session engine as the
- * letter Study page (useStudySession) but with the word list as the card pool
- * and a word-tuned flashcard. Front shows the Gurmukhi word; the answer side
- * shows how to say it (romanization) + the English translation + audio.
+ * Practice-word flashcard session. Runs on the word session engine
+ * (useWordSession) in either Random or in-order mode. Front shows the Gurmukhi
+ * word; the answer side shows how to say it (romanization) + the English
+ * translation + audio.
  */
 
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, ChevronLeft } from 'lucide-react';
-import { useStudySession } from '../hooks/useStudySession';
+import { useWordSession } from '../hooks/useWordSession';
 import { useWords } from '../hooks/useWords';
 import { useWordAudio } from '../hooks/useWordAudio';
 import { useKeyboardStudy } from '../hooks/useKeyboardStudy';
@@ -23,7 +23,7 @@ import ResultsScreen from '../components/study/ResultsScreen';
 export default function WordStudy() {
   const { state } = useLocation();
   const navigate = useNavigate();
-  const { selectedIds, title } = state || {};
+  const { selectedIds, title, category, ordered = false } = state || {};
   const { words, loading } = useWords();
   const { play: playAudio } = useWordAudio();
 
@@ -33,7 +33,7 @@ export default function WordStudy() {
     sessionResults, done,
     handleAnswer, restart, endEarly,
     correctCount, wrongCount, progress,
-  } = useStudySession('word', selectedIds, null, words);
+  } = useWordSession(words, selectedIds, { ordered, category });
 
   useKeyboardStudy({
     revealed,
@@ -83,7 +83,10 @@ export default function WordStudy() {
           <ChevronLeft className="w-5 h-5 text-stone-500" />
         </button>
         <div className="flex-1">
-          <p className="text-sm font-bold text-stone-800">{title || 'Practice Words'}</p>
+          <p className="text-sm font-bold text-stone-800">
+            {title || 'Practice Words'}
+            <span className="ml-1.5 text-xs font-medium text-stone-400">· {ordered ? 'In order' : 'Random'}</span>
+          </p>
           <div className="mt-1.5 h-1.5 bg-stone-200 rounded-full overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-pink-500 to-orange-400 rounded-full transition-all duration-300"
