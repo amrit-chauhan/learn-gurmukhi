@@ -8,17 +8,19 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, MessageSquareText, CalendarDays, Hash } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MessageSquareText, CalendarDays, Hash, Music } from 'lucide-react';
 import { useWords, WORD_CATEGORIES } from '../hooks/useWords';
 
 const CATEGORY_ICON = {
   common: MessageSquareText,
+  songs: Music,
   days: CalendarDays,
   numbers: Hash,
 };
 
 const CATEGORY_STYLE = {
   common: { bg: 'bg-pink-50', text: 'text-pink-600' },
+  songs: { bg: 'bg-rose-50', text: 'text-rose-600' },
   days: { bg: 'bg-violet-50', text: 'text-violet-600' },
   numbers: { bg: 'bg-orange-50', text: 'text-orange-600' },
 };
@@ -27,10 +29,9 @@ export default function WordsHome() {
   const navigate = useNavigate();
   const { byCategory, loading } = useWords();
 
-  const startSession = (categoryId, label) => {
-    const ids = byCategory(categoryId).map((w) => w.id);
-    if (ids.length === 0) return;
-    navigate('/word-study', { state: { selectedIds: ids, title: label } });
+  const openSection = (categoryId, label) => {
+    if (byCategory(categoryId).length === 0) return;
+    navigate('/word-select', { state: { category: categoryId, label } });
   };
 
   return (
@@ -65,7 +66,7 @@ export default function WordsHome() {
               key={cat.id}
               data-testid={`word-section-${cat.id}`}
               disabled={loading || count === 0}
-              onClick={() => startSession(cat.id, cat.label)}
+              onClick={() => openSection(cat.id, cat.label)}
               className="w-full flex items-center gap-4 rounded-2xl bg-white border border-stone-100 p-6 text-left shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-150 disabled:opacity-50 disabled:active:scale-100"
             >
               <div className={`w-14 h-14 rounded-2xl ${style.bg} flex items-center justify-center flex-shrink-0 ${style.text}`}>

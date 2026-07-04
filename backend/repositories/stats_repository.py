@@ -7,7 +7,7 @@ document carries a `profile_id`, so counters are independent per profile.
 No business logic or formatting – that belongs in the service layer.
 """
 
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 from database import db
 
@@ -27,6 +27,31 @@ async def get_stats(profile_id: str, today: str) -> Dict[str, int]:
         "today_app_seconds": today_doc.get("app_seconds", 0),
         "today_practice_seconds": today_doc.get("practice_seconds", 0),
     }
+
+
+async def get_daily_range(profile_id: str, start: str, end: str) -> List[Dict[str, Any]]:
+    """
+    Return every daily document for *profile_id* whose date falls within
+    [start, end] inclusive. ISO YYYY-MM-DD strings sort lexicographically,
+    so a plain string range query is correct.
+    """
+    cursor = db.user_stats.find(
+        {
+            "profile_id": profile_id,
+            "type": "daily",
+            "date": {"$gte": start, "$lte": end},
+        },
+        {"_id": 0, "date": 1, "app_seconds": 1, "practice_seconds": 1},
+    )
+    docs = await cursor.to_list(length=None)
+    return [
+        {
+            "date": doc["date"],
+            "app_seconds": doc.get("app_seconds", 0),
+            "practice_seconds": doc.get("practice_seconds", 0),
+        }
+        for doc in docs
+    ]
 
 
 async def add_time(profile_id: str, today: str, app_seconds: int, practice_seconds: int) -> None:
