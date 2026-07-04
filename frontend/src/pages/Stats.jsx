@@ -549,11 +549,17 @@ function CalendarTab() {
   const goPrev = () => setViewDate(new Date(year, month - 1, 1));
   const goNext = () => setViewDate(new Date(year, month + 1, 1));
 
-  // A day "has activity" if it recorded any time or is flagged as practiced.
-  const hasActivity = (iso) => {
-    const t = byDate[iso];
-    return practiced.has(iso) || (t && (t.app > 0 || t.practice > 0));
+  // Heat level for a day, based on PRACTICE (study) time:
+  //   'high' – studied more than 10 minutes  → green
+  //   'low'  – studied at all (any practice, or flagged practiced) → yellow
+  //   'none' – no study → grey
+  const heatLevel = (iso) => {
+    const practice = byDate[iso]?.practice || 0;
+    if (practice >= 600) return 'high';
+    if (practice > 0 || practiced.has(iso)) return 'low';
+    return 'none';
   };
+  const hasActivity = (iso) => heatLevel(iso) !== 'none';
 
   const selectedTime = selected ? byDate[selected] : null;
   const selectedApp = selectedTime?.app || 0;
@@ -619,7 +625,14 @@ function CalendarTab() {
             const iso = toISODate(new Date(year, month, day));
             const isToday = iso === todayISO;
             const isSelected = iso === selected;
-            const active = hasActivity(iso);
+            const level = heatLevel(iso);
+
+            const levelClass =
+              level === 'high'
+                ? 'bg-emerald-200 text-emerald-800 hover:bg-emerald-300'
+                : level === 'low'
+                  ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                  : 'text-stone-500 hover:bg-stone-100';
 
             return (
               <button
@@ -628,18 +641,11 @@ function CalendarTab() {
                 onClick={() => setSelected(iso)}
                 className={[
                   'relative aspect-square rounded-xl flex items-center justify-center text-sm font-semibold transition-all active:scale-95',
-                  isSelected
-                    ? 'bg-pink-500 text-white shadow-sm'
-                    : active
-                      ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
-                      : 'text-stone-500 hover:bg-stone-100',
+                  isSelected ? 'bg-pink-500 text-white shadow-sm' : levelClass,
                   isToday && !isSelected ? 'ring-2 ring-pink-400' : '',
                 ].join(' ')}
               >
                 {day}
-                {active && !isSelected && (
-                  <span className="absolute bottom-1 w-1 h-1 rounded-full bg-amber-500" />
-                )}
               </button>
             );
           })}
@@ -647,13 +653,21 @@ function CalendarTab() {
       </div>
 
       {/* Legend */}
-      <div className="flex items-center justify-center gap-4 mt-3">
+      <div className="flex items-center justify-center flex-wrap gap-x-4 gap-y-1.5 mt-3">
         <div className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
-          <span className="text-[11px] text-stone-500 font-medium">Practiced</span>
+          <span className="w-2.5 h-2.5 rounded-sm bg-emerald-200 border border-emerald-300" />
+          <span className="text-[11px] text-stone-500 font-medium">10+ min</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-full ring-2 ring-pink-400" />
+          <span className="w-2.5 h-2.5 rounded-sm bg-amber-100 border border-amber-300" />
+          <span className="text-[11px] text-stone-500 font-medium">Studied</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="w-2.5 h-2.5 rounded-sm bg-stone-100 border border-stone-200" />
+          <span className="text-[11px] text-stone-500 font-medium">None</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="w-2.5 h-2.5 rounded-sm ring-2 ring-pink-400" />
           <span className="text-[11px] text-stone-500 font-medium">Today</span>
         </div>
       </div>

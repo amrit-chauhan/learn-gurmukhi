@@ -11,11 +11,12 @@
 
 import React, { useMemo, useRef, useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, CheckSquare, Square, Shuffle, ListOrdered } from 'lucide-react';
+import { ArrowLeft, CheckSquare, Square, Shuffle, ListOrdered, Bookmark, Check } from 'lucide-react';
 import { useProgress } from '../context/ProgressContext';
 import { useProfile } from '../context/ProfileContext';
 import { useWords, WORD_CATEGORIES } from '../hooks/useWords';
 import { useLetterSelection } from '../hooks/useLetterSelection';
+import { useSavedSelections } from '../hooks/useSavedSelections';
 import { computeWordMastery } from '../utils/wordMastery';
 import WordGridItem from '../components/WordGridItem';
 
@@ -38,6 +39,18 @@ export default function WordSelect() {
 
   const words = useMemo(() => byCategory(category), [byCategory, category]);
   const { selectedIds, toggle, applyDrag, selectAll, deselectAll, isAllSelected } = useLetterSelection();
+  const { save: saveSelection } = useSavedSelections();
+  const [justSaved, setJustSaved] = useState(false);
+
+  const handleSaveSelection = () => {
+    if (selectedIds.size === 0) return;
+    const suggested = `${meta.label} · ${selectedIds.size}`;
+    const name = window.prompt('Name this selection:', suggested);
+    if (name === null) return; // cancelled
+    saveSelection(name, Array.from(selectedIds), category);
+    setJustSaved(true);
+    setTimeout(() => setJustSaved(false), 2000);
+  };
 
   const getWordMastery = (id) => computeWordMastery(progress[id]?.history);
 
@@ -151,6 +164,16 @@ export default function WordSelect() {
       {/* Bottom action bar */}
       <div className="fixed bottom-0 inset-x-0 bg-white border-t border-stone-200 px-5 pt-3 pb-5">
         <div className="max-w-md mx-auto space-y-2.5">
+          {selectedIds.size > 0 && (
+            <button
+              data-testid="save-selection-btn"
+              onClick={handleSaveSelection}
+              className="w-full py-2 rounded-xl font-semibold text-sm bg-stone-100 text-stone-600 hover:bg-stone-200 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+            >
+              {justSaved ? <Check className="w-4 h-4 text-emerald-600" /> : <Bookmark className="w-4 h-4" />}
+              {justSaved ? 'Saved!' : `Save selection (${selectedIds.size})`}
+            </button>
+          )}
           <button
             data-testid="practice-random-btn"
             onClick={startRandom}
