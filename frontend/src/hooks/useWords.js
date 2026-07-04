@@ -15,10 +15,11 @@ const API = `${process.env.REACT_APP_BACKEND_URL || ''}/api`;
 
 /** Display order + labels for the practice-word sections. */
 export const WORD_CATEGORIES = [
-  { id: 'common',  label: 'Common Words',     desc: 'Everyday Punjabi vocabulary' },
-  { id: 'songs',   label: 'Words in Songs',   desc: 'Vocabulary from Punjabi songs' },
-  { id: 'days',    label: 'Days of the Week', desc: 'Somvaar to Aitvaar' },
-  { id: 'numbers', label: 'Numbers (0–100)',  desc: 'Count in Punjabi' },
+  { id: 'common',      label: 'Common Words',      desc: 'Everyday Punjabi essentials' },
+  { id: 'more_common', label: 'More Common Words', desc: 'Broader everyday vocabulary' },
+  { id: 'songs',       label: 'Words in Songs',    desc: 'Vocabulary from Punjabi songs' },
+  { id: 'days',        label: 'Days of the Week',  desc: 'Somvaar to Aitvaar' },
+  { id: 'numbers',     label: 'Numbers (0–100)',   desc: 'Count in Punjabi' },
 ];
 
 let _cache = null; // resolved words array, shared across mounts

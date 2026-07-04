@@ -8,11 +8,13 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, MessageSquareText, CalendarDays, Hash, Music } from 'lucide-react';
+import { ChevronLeft, ChevronRight, MessageSquareText, MessagesSquare, CalendarDays, Hash, Music, Bookmark, Play, Trash2 } from 'lucide-react';
 import { useWords, WORD_CATEGORIES } from '../hooks/useWords';
+import { useSavedSelections } from '../hooks/useSavedSelections';
 
 const CATEGORY_ICON = {
   common: MessageSquareText,
+  more_common: MessagesSquare,
   songs: Music,
   days: CalendarDays,
   numbers: Hash,
@@ -20,6 +22,7 @@ const CATEGORY_ICON = {
 
 const CATEGORY_STYLE = {
   common: { bg: 'bg-pink-50', text: 'text-pink-600' },
+  more_common: { bg: 'bg-sky-50', text: 'text-sky-600' },
   songs: { bg: 'bg-rose-50', text: 'text-rose-600' },
   days: { bg: 'bg-violet-50', text: 'text-violet-600' },
   numbers: { bg: 'bg-orange-50', text: 'text-orange-600' },
@@ -28,10 +31,16 @@ const CATEGORY_STYLE = {
 export default function WordsHome() {
   const navigate = useNavigate();
   const { byCategory, loading } = useWords();
+  const { selections, remove } = useSavedSelections();
 
   const openSection = (categoryId, label) => {
     if (byCategory(categoryId).length === 0) return;
     navigate('/word-select', { state: { category: categoryId, label } });
+  };
+
+  const practiceSaved = (sel) => {
+    if (!sel.ids || sel.ids.length === 0) return;
+    navigate('/word-study', { state: { selectedIds: sel.ids, title: sel.name, ordered: false } });
   };
 
   return (
@@ -86,6 +95,47 @@ export default function WordsHome() {
 
         {loading && (
           <p className="text-center text-sm text-stone-400 mt-2">Loading words…</p>
+        )}
+
+        {/* Saved selections */}
+        {selections.length > 0 && (
+          <div className="mt-4">
+            <div className="flex items-center gap-2 mb-2 px-1">
+              <Bookmark className="w-4 h-4 text-stone-400" />
+              <h2 className="text-xs font-bold uppercase tracking-wider text-stone-500">Saved Sets</h2>
+            </div>
+            <div className="flex flex-col gap-2">
+              {selections.map((sel) => (
+                <div
+                  key={sel.id}
+                  data-testid={`saved-set-${sel.id}`}
+                  className="flex items-center gap-3 rounded-2xl bg-white border border-stone-100 px-4 py-3 shadow-sm"
+                >
+                  <button
+                    onClick={() => practiceSaved(sel)}
+                    className="flex-1 flex items-center gap-3 text-left active:scale-[0.99] transition-transform"
+                    data-testid={`saved-set-practice-${sel.id}`}
+                  >
+                    <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center flex-shrink-0 text-emerald-600">
+                      <Play className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-stone-800 truncate">{sel.name}</p>
+                      <p className="text-xs text-stone-400">{sel.ids.length} words · tap to practice</p>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => remove(sel.id)}
+                    data-testid={`saved-set-delete-${sel.id}`}
+                    className="p-2 rounded-full text-stone-300 hover:text-red-500 hover:bg-red-50 transition-colors flex-shrink-0"
+                    aria-label="Delete saved set"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
         )}
       </div>
     </div>
