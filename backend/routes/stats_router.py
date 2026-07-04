@@ -23,6 +23,11 @@ async def get_stats(profile_id: str = Depends(get_profile_id)):
     return await stats_service.get_stats(profile_id)
 
 
+@router.get("/stats/daily", summary="Return per-day time stats for a calendar view")
+async def get_daily_stats(days: int = 365, profile_id: str = Depends(get_profile_id)):
+    return await stats_service.get_daily(profile_id, days)
+
+
 @router.post("/stats/update", summary="Add app and/or practice seconds")
 @limiter.limit(WRITE_LIMIT)
 async def update_stats(request: Request, data: TimeUpdateRequest, profile_id: str = Depends(get_profile_id)):

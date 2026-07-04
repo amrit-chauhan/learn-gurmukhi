@@ -14,7 +14,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, RefreshCw, Flame, Trophy, Clock, BookOpen, X } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Flame, Trophy, Clock, BookOpen, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
@@ -42,9 +42,34 @@ const CATEGORY_LABELS = {
 const TABS = [
   { id: 'overview', label: 'Overview' },
   { id: 'letters',  label: 'Letters'  },
+  { id: 'calendar', label: 'Calendar' },
   { id: 'time',     label: 'Time'     },
   { id: 'streak',   label: 'Streak'   },
 ];
+
+// A day counts as "solid study" (green) at 10+ minutes of practice; any
+// practice below that is a "light" day (yellow); zero is "no study" (grey).
+const STUDY_GREEN_SECONDS = 10 * 60;
+
+const CAL_LEVEL = {
+  none:  { fill: '#f0efed', text: '#a8a29e', label: 'No study'    },
+  light: { fill: '#f59e0b', text: '#ffffff', label: 'Under 10 min' },
+  solid: { fill: '#22c55e', text: '#ffffff', label: '10+ min'      },
+};
+
+function dayLevel(practiceSeconds) {
+  if (!practiceSeconds || practiceSeconds <= 0) return 'none';
+  return practiceSeconds >= STUDY_GREEN_SECONDS ? 'solid' : 'light';
+}
+
+const WEEKDAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+const MONTH_LABELS = ['January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'];
+
+/** Local ISO date key (YYYY-MM-DD) built from parts — avoids timezone shifts. */
+function isoDate(y, m, d) {
+  return `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+}
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -475,6 +500,126 @@ function StreakTab({ stats }) {
   );
 }
 
+// ── Calendar Tab ──────────────────────────────────────────────────────────────
+
+function CalendarTab({ daily }) {
+  const today = new Date();
+  const todayKey = isoDate(today.getFullYear(), today.getMonth(), today.getDate());
+
+  // View starts on the current month; user can page backward/forward.
+  const [view, setView] = useState({ y: today.getFullYear(), m: today.getMonth() });
+
+  // Map ISO date → practice seconds for O(1) lookup.
+  const byDate = React.useMemo(() => {
+    const map = {};
+    (daily || []).forEach((d) => { map[d.date] = d.practice_seconds || 0; });
+    return map;
+  }, [daily]);
+
+  if (!daily) return (
+    <div className="flex justify-center py-16">
+      <RefreshCw className="w-5 h-5 text-stone-300 animate-spin" />
+    </div>
+  );
+
+  const firstWeekday = new Date(view.y, view.m, 1).getDay();
+  const daysInMonth = new Date(view.y, view.m + 1, 0).getDate();
+  const isCurrentMonth = view.y === today.getFullYear() && view.m === today.getMonth();
+
+  // Build the grid: leading blanks to align the 1st, then each day.
+  const cells = [];
+  for (let i = 0; i < firstWeekday; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+
+  const goPrev = () => setView((v) => (v.m === 0 ? { y: v.y - 1, m: 11 } : { y: v.y, m: v.m - 1 }));
+  const goNext = () => { if (!isCurrentMonth) setView((v) => (v.m === 11 ? { y: v.y + 1, m: 0 } : { y: v.y, m: v.m + 1 })); };
+
+  // Days this month with any study, for a quick summary line.
+  let studied = 0;
+  for (let d = 1; d <= daysInMonth; d++) {
+    if (dayLevel(byDate[isoDate(view.y, view.m, d)]) !== 'none') studied += 1;
+  }
+
+  return (
+    <div>
+      {/* Month navigation */}
+      <div className="flex items-center justify-between mb-4">
+        <button
+          data-testid="calendar-prev"
+          onClick={goPrev}
+          className="p-2 rounded-full hover:bg-stone-200 transition-colors"
+          aria-label="Previous month"
+        >
+          <ChevronLeft className="w-5 h-5 text-stone-600" />
+        </button>
+        <p className="text-sm font-bold text-stone-800">{MONTH_LABELS[view.m]} {view.y}</p>
+        <button
+          data-testid="calendar-next"
+          onClick={goNext}
+          disabled={isCurrentMonth}
+          className="p-2 rounded-full hover:bg-stone-200 transition-colors disabled:opacity-30 disabled:hover:bg-transparent"
+          aria-label="Next month"
+        >
+          <ChevronRight className="w-5 h-5 text-stone-600" />
+        </button>
+      </div>
+
+      {/* Calendar grid */}
+      <div className="bg-white border border-stone-100 rounded-2xl p-4 shadow-sm">
+        <div className="grid grid-cols-7 gap-1.5 mb-2">
+          {WEEKDAY_LABELS.map((w, i) => (
+            <div key={i} className="text-center text-[10px] font-bold uppercase tracking-wide text-stone-400">
+              {w}
+            </div>
+          ))}
+        </div>
+        <div className="grid grid-cols-7 gap-1.5">
+          {cells.map((d, i) => {
+            if (d === null) return <div key={`b${i}`} />;
+            const key = isoDate(view.y, view.m, d);
+            const isFuture = key > todayKey;
+            const isToday = key === todayKey;
+            const level = dayLevel(byDate[key]);
+            const cfg = CAL_LEVEL[level];
+            return (
+              <div
+                key={key}
+                data-testid={`calendar-day-${key}`}
+                data-level={isFuture ? 'future' : level}
+                title={isFuture ? '' : `${key} · ${formatTime(byDate[key] || 0)} practice`}
+                className={`aspect-square rounded-lg flex items-center justify-center text-xs font-semibold ${
+                  isToday ? 'ring-2 ring-pink-500 ring-offset-1' : ''
+                }`}
+                style={{
+                  background: isFuture ? 'transparent' : cfg.fill,
+                  color: isFuture ? '#d6d3d1' : cfg.text,
+                }}
+              >
+                {d}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Summary + legend */}
+      <p className="text-xs text-stone-500 text-center mt-3">
+        {studied === 0
+          ? 'No study days this month yet.'
+          : `Studied on ${studied} ${studied === 1 ? 'day' : 'days'} this month.`}
+      </p>
+      <div className="flex items-center justify-center gap-4 mt-4">
+        {['none', 'light', 'solid'].map((lvl) => (
+          <div key={lvl} className="flex items-center gap-1.5">
+            <div className="w-3.5 h-3.5 rounded" style={{ background: CAL_LEVEL[lvl].fill }} />
+            <span className="text-xs text-stone-600 font-medium">{CAL_LEVEL[lvl].label}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ── Main Stats Page ───────────────────────────────────────────────────────────
 
 export default function Stats() {
@@ -483,13 +628,18 @@ export default function Stats() {
 
   const [activeTab, setActiveTab] = useState('overview');
   const [stats, setStats]         = useState(null);
+  const [daily, setDaily]         = useState(null);
   const [refreshing, setRefreshing] = useState(false);
 
   const loadStats = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
     try {
-      const { data } = await axios.get(`${API}/stats`);
-      setStats(data);
+      const [statsRes, dailyRes] = await Promise.all([
+        axios.get(`${API}/stats`),
+        axios.get(`${API}/stats/daily`),
+      ]);
+      setStats(statsRes.data);
+      setDaily(dailyRes.data);
     } catch (e) {
       console.error('Failed to load stats', e);
     } finally {
@@ -561,6 +711,7 @@ export default function Stats() {
             {activeTab === 'letters' && (
               <LettersTab alphabet={alphabet} getMastery={getMastery} progress={progress} />
             )}
+            {activeTab === 'calendar' && <CalendarTab daily={daily} />}
             {activeTab === 'time' && <TimeTab stats={stats} />}
             {activeTab === 'streak' && <StreakTab stats={stats} />}
           </motion.div>
