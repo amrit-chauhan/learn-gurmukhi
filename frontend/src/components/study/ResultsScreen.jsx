@@ -9,8 +9,9 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { RotateCcw, Home } from 'lucide-react';
 
-export default function ResultsScreen({ sessionResults, correctCount, mode, onStudyAgain }) {
+export default function ResultsScreen({ sessionResults, correctCount, mode, onStudyAgain, onChangeSelection }) {
   const navigate = useNavigate();
+  const changeSelection = onChangeSelection || (() => navigate('/select', { state: { mode } }));
   const wrongOnes = sessionResults.filter((r) => !r.correct);
   const pct = sessionResults.length === 0 ? 0 : Math.round((correctCount / sessionResults.length) * 100);
   const encouragement =
@@ -54,7 +55,9 @@ export default function ResultsScreen({ sessionResults, correctCount, mode, onSt
                   <div>
                     <p className="font-semibold text-stone-800">{letter.romanization}</p>
                     <p className="text-xs text-stone-400">
-                      {letter.name} · {letter.category.replace(/_/g, ' ')}
+                      {letter.translation
+                        ? letter.translation
+                        : `${letter.name} · ${letter.category.replace(/_/g, ' ')}`}
                     </p>
                   </div>
                 </div>
@@ -75,7 +78,7 @@ export default function ResultsScreen({ sessionResults, correctCount, mode, onSt
           </button>
           <button
             data-testid="change-selection-btn"
-            onClick={() => navigate('/select', { state: { mode } })}
+            onClick={changeSelection}
             className="w-full py-4 bg-white border border-stone-200 text-stone-700 font-semibold rounded-2xl active:scale-[0.98] transition-all"
           >
             Change Selection
