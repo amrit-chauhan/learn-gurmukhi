@@ -13,7 +13,7 @@ Additional requests:
 
 ## User Choices
 - Romanization + audio pronunciation button
-- Audio: human voice clips for most letters; AI-generated audio (OpenAI TTS, nova voice) for the remainder — all files are pre-generated and committed to the repo as static mp3s (no live generation at runtime)
+- Audio: human voice clips for most letters; AI-generated audio (Google TTS, authentic Punjabi `pa` voice reading Gurmukhi) for every letter — all files are pre-generated and committed to the repo as static mp3s (no live generation at runtime). Regenerated via `backend/scripts/generate_ai_audio.py` from a single reviewable Gurmukhi SPEECH map (letters say name+sound, numbers say just the number word)
 - All letters included (consonants, vowels, matras, special marks) + 10 Punjabi numerals
 - No specific design preference (warm Phulkari theme applied — see `docs/design_guidelines.json`)
 - Time Tracker: Stats on a new /stats page
