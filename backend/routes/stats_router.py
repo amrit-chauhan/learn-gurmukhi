@@ -5,10 +5,11 @@ All routes are scoped to the active profile (X-Profile-Id header, or a
 profile_id query param used by the sendBeacon fallback).
 
 GET  /api/stats         →  return today + all-time time stats
+GET  /api/stats/daily   →  return per-day time for a date range
 POST /api/stats/update  →  add app / practice seconds
 """
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Query, Request
 
 from dependencies import get_profile_id
 from models.stats import TimeUpdateRequest
@@ -21,6 +22,15 @@ router = APIRouter(prefix="/api", tags=["stats"])
 @router.get("/stats", summary="Return today and all-time time-tracking stats")
 async def get_stats(profile_id: str = Depends(get_profile_id)):
     return await stats_service.get_stats(profile_id)
+
+
+@router.get("/stats/daily", summary="Return per-day time for a date range")
+async def get_daily_stats(
+    start: str = Query(..., description="Inclusive start date, YYYY-MM-DD"),
+    end: str = Query(..., description="Inclusive end date, YYYY-MM-DD"),
+    profile_id: str = Depends(get_profile_id),
+):
+    return await stats_service.get_daily(profile_id, start, end)
 
 
 @router.post("/stats/update", summary="Add app and/or practice seconds")

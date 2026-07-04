@@ -6,15 +6,17 @@
  *   Letters   – sortable grid of all letters, click for detail modal
  *   Time      – today / all-time app & practice time
  *   Streak    – current & longest streak
+ *   Calendar  – month grid; tap a day for that day's app & practice time
  *
  * Data sources:
  *   - useProgress() → alphabet, getMastery, progress (no extra API calls)
- *   - GET /api/stats → time + streak fields
+ *   - GET /api/stats       → time + streak fields
+ *   - GET /api/stats/daily → per-day time for the visible month (Calendar tab)
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, RefreshCw, Flame, Trophy, Clock, BookOpen, X } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Flame, Trophy, Clock, BookOpen, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
@@ -44,6 +46,7 @@ const TABS = [
   { id: 'letters',  label: 'Letters'  },
   { id: 'time',     label: 'Time'     },
   { id: 'streak',   label: 'Streak'   },
+  { id: 'calendar', label: 'Calendar' },
 ];
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -59,6 +62,20 @@ function formatStreak(d) {
   if (!d) return '—';
   return d === 1 ? '1 day' : `${d} days`;
 }
+
+// Local-time ISO date (YYYY-MM-DD) — avoids the UTC shift of toISOString().
+function toISODate(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+const WEEKDAY_LABELS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+const MONTH_NAMES = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
 
 // ── Shared: TimeCard ──────────────────────────────────────────────────────────
 
@@ -475,6 +492,220 @@ function StreakTab({ stats }) {
   );
 }
 
+// ── Calendar Tab ──────────────────────────────────────────────────────────────
+
+function CalendarTab() {
+  const todayISO = toISODate(new Date());
+
+  // First-of-month anchor for the currently displayed month.
+  const [viewDate, setViewDate] = useState(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  });
+  const [byDate, setByDate] = useState({});           // { 'YYYY-MM-DD': {app, practice} }
+  const [practiced, setPracticed] = useState(new Set());
+  const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState(todayISO); // selected day (ISO)
+
+  const year = viewDate.getFullYear();
+  const month = viewDate.getMonth(); // 0-indexed
+
+  // Build the grid: leading blanks for the first weekday, then each day of month.
+  const cells = useMemo(() => {
+    const firstWeekday = new Date(year, month, 1).getDay(); // 0=Sun
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const arr = [];
+    for (let i = 0; i < firstWeekday; i++) arr.push(null);
+    for (let d = 1; d <= daysInMonth; d++) arr.push(d);
+    return arr;
+  }, [year, month]);
+
+  // Fetch the visible month's per-day data whenever the month changes.
+  useEffect(() => {
+    let cancelled = false;
+    const start = toISODate(new Date(year, month, 1));
+    const end = toISODate(new Date(year, month + 1, 0));
+    setLoading(true);
+    axios
+      .get(`${API}/stats/daily`, { params: { start, end } })
+      .then(({ data }) => {
+        if (cancelled) return;
+        const map = {};
+        (data.days || []).forEach((d) => {
+          map[d.date] = { app: d.app_seconds || 0, practice: d.practice_seconds || 0 };
+        });
+        setByDate(map);
+        setPracticed(new Set(data.practiced_dates || []));
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setByDate({});
+        setPracticed(new Set());
+      })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [year, month]);
+
+  const goPrev = () => setViewDate(new Date(year, month - 1, 1));
+  const goNext = () => setViewDate(new Date(year, month + 1, 1));
+
+  // A day "has activity" if it recorded any time or is flagged as practiced.
+  const hasActivity = (iso) => {
+    const t = byDate[iso];
+    return practiced.has(iso) || (t && (t.app > 0 || t.practice > 0));
+  };
+
+  const selectedTime = selected ? byDate[selected] : null;
+  const selectedApp = selectedTime?.app || 0;
+  const selectedPractice = selectedTime?.practice || 0;
+  const selectedIsToday = selected === todayISO;
+  const selectedActive = selected ? hasActivity(selected) : false;
+
+  const formatSelectedLabel = (iso) => {
+    if (!iso) return '';
+    const [y, m, d] = iso.split('-').map(Number);
+    const dt = new Date(y, m - 1, d);
+    return dt.toLocaleDateString(undefined, {
+      weekday: 'short', month: 'short', day: 'numeric', year: 'numeric',
+    });
+  };
+
+  return (
+    <div>
+      {/* Month header + navigation */}
+      <div className="flex items-center justify-between mb-4">
+        <button
+          data-testid="calendar-prev-month"
+          onClick={goPrev}
+          className="p-2 rounded-full hover:bg-stone-200 transition-colors text-stone-500"
+          aria-label="Previous month"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+        <p data-testid="calendar-month-label" className="text-sm font-bold text-stone-800">
+          {MONTH_NAMES[month]} {year}
+        </p>
+        <button
+          data-testid="calendar-next-month"
+          onClick={goNext}
+          className="p-2 rounded-full hover:bg-stone-200 transition-colors text-stone-500"
+          aria-label="Next month"
+        >
+          <ChevronRight className="w-5 h-5" />
+        </button>
+      </div>
+
+      {/* Calendar card */}
+      <div className="bg-white border border-stone-100 rounded-2xl p-3 shadow-sm relative">
+        {loading && (
+          <div className="absolute top-3 right-3">
+            <RefreshCw className="w-3.5 h-3.5 text-stone-300 animate-spin" />
+          </div>
+        )}
+
+        {/* Weekday header */}
+        <div className="grid grid-cols-7 gap-1 mb-1">
+          {WEEKDAY_LABELS.map((w, i) => (
+            <div key={i} className="text-center text-[11px] font-semibold text-stone-400 py-1">
+              {w}
+            </div>
+          ))}
+        </div>
+
+        {/* Day grid */}
+        <div className="grid grid-cols-7 gap-1">
+          {cells.map((day, i) => {
+            if (day === null) return <div key={`blank-${i}`} />;
+            const iso = toISODate(new Date(year, month, day));
+            const isToday = iso === todayISO;
+            const isSelected = iso === selected;
+            const active = hasActivity(iso);
+
+            return (
+              <button
+                key={iso}
+                data-testid={`calendar-day-${iso}`}
+                onClick={() => setSelected(iso)}
+                className={[
+                  'relative aspect-square rounded-xl flex items-center justify-center text-sm font-semibold transition-all active:scale-95',
+                  isSelected
+                    ? 'bg-pink-500 text-white shadow-sm'
+                    : active
+                      ? 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                      : 'text-stone-500 hover:bg-stone-100',
+                  isToday && !isSelected ? 'ring-2 ring-pink-400' : '',
+                ].join(' ')}
+              >
+                {day}
+                {active && !isSelected && (
+                  <span className="absolute bottom-1 w-1 h-1 rounded-full bg-amber-500" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Legend */}
+      <div className="flex items-center justify-center gap-4 mt-3">
+        <div className="flex items-center gap-1.5">
+          <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
+          <span className="text-[11px] text-stone-500 font-medium">Practiced</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="w-2.5 h-2.5 rounded-full ring-2 ring-pink-400" />
+          <span className="text-[11px] text-stone-500 font-medium">Today</span>
+        </div>
+      </div>
+
+      {/* Selected-day detail panel */}
+      <AnimatePresence mode="wait">
+        {selected && (
+          <motion.div
+            key={selected}
+            data-testid="calendar-day-detail"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.15 }}
+            className="mt-5"
+          >
+            <div className="flex items-baseline justify-between mb-3">
+              <p className="text-sm font-bold text-stone-800">
+                {formatSelectedLabel(selected)}
+              </p>
+              {selectedIsToday && (
+                <span className="text-[11px] font-bold text-pink-500">Today</span>
+              )}
+            </div>
+            <div className="flex gap-3">
+              <TimeCard
+                icon={Clock}
+                label="App time"
+                value={formatTime(selectedApp)}
+                bgClass="bg-amber-100"
+                iconClass="text-amber-600"
+                testId="calendar-day-app-time"
+              />
+              <TimeCard
+                icon={BookOpen}
+                label="Practice time"
+                value={formatTime(selectedPractice)}
+                bgClass="bg-emerald-100"
+                iconClass="text-emerald-600"
+                testId="calendar-day-practice-time"
+              />
+            </div>
+            {!selectedActive && (
+              <p className="text-xs text-stone-400 text-center mt-3">No activity on this day.</p>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 // ── Main Stats Page ───────────────────────────────────────────────────────────
 
 export default function Stats() {
@@ -563,6 +794,7 @@ export default function Stats() {
             )}
             {activeTab === 'time' && <TimeTab stats={stats} />}
             {activeTab === 'streak' && <StreakTab stats={stats} />}
+            {activeTab === 'calendar' && <CalendarTab />}
           </motion.div>
         </AnimatePresence>
       </div>
