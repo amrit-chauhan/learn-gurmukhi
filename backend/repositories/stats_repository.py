@@ -29,6 +29,26 @@ async def get_stats(profile_id: str, today: str) -> Dict[str, int]:
     }
 
 
+async def get_daily_history(profile_id: str, since: str) -> list:
+    """
+    Return every daily document for *profile_id* dated on/after *since* (an ISO
+    date string), sorted oldest → newest. Each item carries the date and its
+    app / practice second counters.
+    """
+    cursor = db.user_stats.find(
+        {"profile_id": profile_id, "type": "daily", "date": {"$gte": since}},
+        {"_id": 0, "date": 1, "app_seconds": 1, "practice_seconds": 1},
+    ).sort("date", 1)
+    return [
+        {
+            "date": doc["date"],
+            "app_seconds": doc.get("app_seconds", 0),
+            "practice_seconds": doc.get("practice_seconds", 0),
+        }
+        async for doc in cursor
+    ]
+
+
 async def add_time(profile_id: str, today: str, app_seconds: int, practice_seconds: int) -> None:
     """
     Atomically increment time counters for *profile_id*.
