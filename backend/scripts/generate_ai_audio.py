@@ -61,27 +61,30 @@ AI_CACHE_DIR = BACKEND_DIR / "data" / "audio" / "ai_cache"
 # What each letter should SAY, in Gurmukhi, read by a Punjabi (lang="pa") voice.
 # Reviewable / editable in one place — change any string and re-run to fix a clip.
 SPEECH = {
-    # ── Vowel carriers — "name, letter" ─────────────────────────────────────
-    "ura": "ਊੜਾ, ੳ",   "ara": "ਐੜਾ, ਅ",   "iri": "ਈੜੀ, ੲ",
-    # ── Consonants — "name, sound" ──────────────────────────────────────────
-    "sa": "ਸੱਸਾ, ਸ",     "ha": "ਹਾਹਾ, ਹ",     "ka": "ਕੱਕਾ, ਕ",
-    "kha": "ਖੱਖਾ, ਖ",    "ga": "ਗੱਗਾ, ਗ",     "gha": "ਘੱਗਾ, ਘ",
-    "nga": "ਙੰਙਾ, ਙ",    "cha": "ਚੱਚਾ, ਚ",     "chha": "ਛੱਛਾ, ਛ",
-    "ja": "ਜੱਜਾ, ਜ",     "jha": "ਝੱਜਾ, ਝ",     "nya": "ਞੰਞਾ, ਞ",
-    "tta": "ਟੈਂਕਾ, ਟ",    "ttha": "ਠੱਠਾ, ਠ",    "dda": "ਡੱਡਾ, ਡ",
-    "ddha": "ਢੱਡਾ, ਢ",   "nna": "ਣਾਣਾ, ਣ",    "ta": "ਤੱਤਾ, ਤ",
-    "tha": "ਥੱਥਾ, ਥ",    "da": "ਦੱਦਾ, ਦ",      "dha": "ਧੱਦਾ, ਧ",
-    "na": "ਨੰਨਾ, ਨ",     "pa": "ਪੱਪਾ, ਪ",      "pha": "ਫੱਫਾ, ਫ",
-    "ba": "ਬੱਬਾ, ਬ",     "bha": "ਭੱਬਾ, ਭ",     "ma": "ਮੰਮਾ, ਮ",
-    "ya": "ਯੱਯਾ, ਯ",     "ra": "ਰਾਰਾ, ਰ",      "la": "ਲੱਲਾ, ਲ",
-    "va": "ਵੱਵਾ, ਵ",
-    # ── Nukta consonants (borrowed sounds) — "name, sound" ──────────────────
-    "sha": "ਸ਼ੱਸ਼ਾ, ਸ਼",   "kha_n": "ਖ਼ੱਖ਼ਾ, ਖ਼",  "gha_n": "ਗ਼ੱਗ਼ਾ, ਗ਼",
-    "za": "ਜ਼ੱਜ਼ਾ, ਜ਼",    "lla": "ਲ਼ੱਲ਼ਾ, ਲ਼",    "fa": "ਫ਼ੱਫ਼ਾ, ਫ਼",
-    # ── Independent vowels — "name, sound" ──────────────────────────────────
-    "v_aa": "ਆ, ਆ",  "v_i": "ਇ, ਇ",   "v_ee": "ਈ, ਈ",  "v_u": "ਉ, ਉ",
-    "v_uu": "ਊ, ਊ",  "v_e": "ਏ, ਏ",   "v_ai": "ਐ, ਐ",  "v_o": "ਓ, ਓ",
-    "v_au": "ਔ, ਔ",
+    # ── Vowel carriers — name only (they have no standalone sound) ──────────
+    "ura": "ਊੜਾ",   "ara": "ਐੜਾ",   "iri": "ਈੜੀ",
+    # ── Consonants — "<name>, <sound syllable>" ─────────────────────────────
+    # The SOUND is the consonant + aunkar (ੁ), e.g. ਸੁ → "su". A *bare* Gurmukhi
+    # consonant is read by the TTS as its NAME ("sassa"), which made the clip
+    # say the name twice; a consonant+matra is read as an actual syllable.
+    "sa": "ਸੱਸਾ, ਸੁ",     "ha": "ਹਾਹਾ, ਹੁ",     "ka": "ਕੱਕਾ, ਕੁ",
+    "kha": "ਖੱਖਾ, ਖੁ",    "ga": "ਗੱਗਾ, ਗੁ",     "gha": "ਘੱਗਾ, ਘੁ",
+    "nga": "ਙੰਙਾ, ਙੁ",    "cha": "ਚੱਚਾ, ਚੁ",     "chha": "ਛੱਛਾ, ਛੁ",
+    "ja": "ਜੱਜਾ, ਜੁ",     "jha": "ਝੱਜਾ, ਝੁ",     "nya": "ਞੰਞਾ, ਞੁ",
+    "tta": "ਟੈਂਕਾ, ਟੁ",    "ttha": "ਠੱਠਾ, ਠੁ",    "dda": "ਡੱਡਾ, ਡੁ",
+    "ddha": "ਢੱਡਾ, ਢੁ",   "nna": "ਣਾਣਾ, ਣੁ",    "ta": "ਤੱਤਾ, ਤੁ",
+    "tha": "ਥੱਥਾ, ਥੁ",    "da": "ਦੱਦਾ, ਦੁ",      "dha": "ਧੱਦਾ, ਧੁ",
+    "na": "ਨੰਨਾ, ਨੁ",     "pa": "ਪੱਪਾ, ਪੁ",      "pha": "ਫੱਫਾ, ਫੁ",
+    "ba": "ਬੱਬਾ, ਬੁ",     "bha": "ਭੱਬਾ, ਭੁ",     "ma": "ਮੰਮਾ, ਮੁ",
+    "ya": "ਯੱਯਾ, ਯੁ",     "ra": "ਰਾਰਾ, ਰੁ",      "la": "ਲੱਲਾ, ਲੁ",
+    "va": "ਵੱਵਾ, ਵੁ",
+    # ── Nukta consonants (borrowed sounds) — "<name>, <sound>" ──────────────
+    "sha": "ਸ਼ੱਸ਼ਾ, ਸ਼ੁ",   "kha_n": "ਖ਼ੱਖ਼ਾ, ਖ਼ੁ",  "gha_n": "ਗ਼ੱਗ਼ਾ, ਗ਼ੁ",
+    "za": "ਜ਼ੱਜ਼ਾ, ਜ਼ੁ",    "lla": "ਲ਼ੱਲ਼ਾ, ਲ਼ੁ",    "fa": "ਫ਼ੱਫ਼ਾ, ਫ਼ੁ",
+    # ── Independent vowels — the vowel once (its name IS its sound) ──────────
+    "v_aa": "ਆ",  "v_i": "ਇ",   "v_ee": "ਈ",  "v_u": "ਉ",
+    "v_uu": "ਊ",  "v_e": "ਏ",   "v_ai": "ਐ",  "v_o": "ਓ",
+    "v_au": "ਔ",
     # ── Matras (sign name, then the ਕ+vowel syllable) ───────────────────────
     "m_aa": "ਕੰਨਾ, ਕਾ",    "m_i": "ਸਿਹਾਰੀ, ਕਿ",    "m_ee": "ਬਿਹਾਰੀ, ਕੀ",
     "m_u": "ਔਂਕੜ, ਕੁ",     "m_uu": "ਦੁਲੈਂਕੜ, ਕੂ",   "m_e": "ਲਾਂ, ਕੇ",
