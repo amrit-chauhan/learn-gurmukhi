@@ -102,7 +102,7 @@ frontend/src/
 
 ## Practice Words
 - "Practice Words" section for learning vocabulary (separate from the alphabet).
-- Five sections: **Common Words** (original everyday essentials), **More Common Words** (a broader second set), **Words in Songs** (vocabulary common in Punjabi music — Sidhu Moose Wala / Karan Aujla / Diljit / Arjan Dhillon, wedding & classic songs), **Days of the Week** (7), **Numbers 0–100** (spoken Punjabi number words).
+- Five sections: **Common Words** (original everyday essentials), **More Common Words** (a broader second set), **Words in Songs** (~885 words common in Punjabi music — Sidhu Moose Wala / Karan Aujla / Diljit / Arjan Dhillon, wedding & classic songs; spans easy staples to harder literary/Perso-Arabic vocabulary), **Days of the Week** (7), **Numbers 0–100** (spoken Punjabi number words).
 - Data: `backend/data/word_data.py` (`PRACTICE_WORDS`), each `{id, gurmukhi, romanization, translation, category}`. Categories may overlap in vocabulary (songs ↔ common) — that's intentional.
 - Selection page (`/word-select`): grid of every word in a section, colour-coded by **word mastery** (`frontend/src/utils/wordMastery.js`, a shorter window than letters — last **3** tries: green = last 3 all correct, red = last 3 all wrong, amber = in between, grey = new). Tap/drag to select a subset. Numbers are shown in order 0→100.
 - Two practice modes (`useWordSession`): **Practice Random** (primary) shuffles the selected words (or all if none selected); **Practice in Order** walks the whole section once in order and **resumes** where you left off (position persisted per profile+section in `localStorage`, cleared after a full pass).
