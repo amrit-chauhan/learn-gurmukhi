@@ -16,6 +16,7 @@ const CATEGORY_ICON = {
   common: MessageSquareText,
   more_common: MessagesSquare,
   songs: Music,
+  more_songs: Music,
   days: CalendarDays,
   numbers: Hash,
 };
@@ -24,6 +25,7 @@ const CATEGORY_STYLE = {
   common: { bg: 'bg-pink-50', text: 'text-pink-600' },
   more_common: { bg: 'bg-sky-50', text: 'text-sky-600' },
   songs: { bg: 'bg-rose-50', text: 'text-rose-600' },
+  more_songs: { bg: 'bg-fuchsia-50', text: 'text-fuchsia-600' },
   days: { bg: 'bg-violet-50', text: 'text-violet-600' },
   numbers: { bg: 'bg-orange-50', text: 'text-orange-600' },
 };
