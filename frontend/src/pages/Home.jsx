@@ -15,6 +15,7 @@ import { useSettings } from '../context/SettingsContext';
 import { useStats } from '../hooks/useStats';
 import SettingsModal from '../components/SettingsModal';
 import StatsBar from '../components/home/StatsBar';
+import HomeSkeleton from '../components/home/HomeSkeleton';
 import MasteryLegend from '../components/home/MasteryLegend';
 import SrBadge from '../components/common/SrBadge';
 import { STUDY_MODES } from '../constants/modes';
@@ -51,11 +52,15 @@ function StreakBanner({ stats }) {
 
 export default function Home() {
   const navigate = useNavigate();
-  const { alphabet, getMastery, resetProgress } = useProgress();
+  const { alphabet, getMastery, resetProgress, loading } = useProgress();
   const { activeProfile } = useProfile();
   const { settings } = useSettings();
   const stats = useStats();
   const [showSettings, setShowSettings] = useState(false);
+
+  // Show the structural skeleton until the alphabet + progress have loaded,
+  // rather than briefly flashing an empty stat bar with zeroed counts.
+  if (loading || alphabet.length === 0) return <HomeSkeleton />;
 
   // Derived stats – use getMastery so the logic stays in ProgressContext
   const studiedCount      = alphabet.filter((l) => getMastery(l.id) !== 'new').length;

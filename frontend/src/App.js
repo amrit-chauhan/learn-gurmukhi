@@ -14,6 +14,7 @@ import Stats from './pages/Stats';
 import Tracing from './pages/Tracing';
 import ProfileSelect from './pages/ProfileSelect';
 import Settings from './pages/Settings';
+import HomeSkeleton from './components/home/HomeSkeleton';
 import './App.css';
 
 /**
@@ -37,8 +38,9 @@ function RequireProfile({ children }) {
 function AppRoutes() {
   const { activeProfile, loading } = useProfile();
 
-  // Wait for the profile list before deciding where to route.
-  if (loading) return null;
+  // Wait for the profile list before deciding where to route. Show the Home
+  // skeleton (rather than a blank screen) so the first paint has real shape.
+  if (loading) return <HomeSkeleton />;
 
   return (
     <>
