@@ -7,7 +7,7 @@
  * translation + audio.
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, ChevronLeft } from 'lucide-react';
 import { useWordSession } from '../hooks/useWordSession';
@@ -25,7 +25,7 @@ export default function WordStudy() {
   const navigate = useNavigate();
   const { selectedIds, title, category, ordered = false } = state || {};
   const { words, loading } = useWords();
-  const { play: playAudio } = useWordAudio();
+  const { play: playAudio, preload: preloadAudio } = useWordAudio();
 
   const {
     cards, currentIndex, currentCard,
@@ -34,6 +34,13 @@ export default function WordStudy() {
     handleAnswer, restart, endEarly,
     correctCount, wrongCount, progress,
   } = useWordSession(words, selectedIds, { ordered, category });
+
+  // Warm the audio cache for just this deck (a handful of words, not the whole
+  // library) as soon as it's built, in the order the cards will appear, so
+  // playback on each card is instant. Deferred to idle inside the hook.
+  useEffect(() => {
+    if (cards.length > 0) preloadAudio(cards.map((c) => c.id));
+  }, [cards, preloadAudio]);
 
   useKeyboardStudy({
     revealed,
