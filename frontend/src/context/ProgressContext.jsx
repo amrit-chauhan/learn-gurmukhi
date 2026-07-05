@@ -15,9 +15,41 @@ export function ProgressProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [audioReady, setAudioReady] = useState(false);
 
+  // Load the static alphabet once on mount. It does not depend on the active
+  // profile, so fetching it here — rather than inside the profile-scoped effect
+  // below — lets the letter list (and its audio) start downloading while the
+  // user is still on the profile-selection screen, instead of waiting until a
+  // profile is chosen.
+  useEffect(() => {
+    let cancelled = false;
+    async function loadAlphabet() {
+      try {
+        const { data } = await axios.get(`${API}/alphabet`);
+        if (cancelled) return;
+        setAlphabet(data);
+
+        // Pre-load all audio, but defer the burst of ~124 fetches until the
+        // browser is idle so it doesn't compete with first paint, fonts, and
+        // the profile/progress requests. Playback still falls back to a live
+        // fetch for anything not yet cached, so nothing breaks if this is slow.
+        const startPreload = () =>
+          preloadAllAudio(data).then(() => { if (!cancelled) setAudioReady(true); });
+        if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+          window.requestIdleCallback(startPreload, { timeout: 3000 });
+        } else {
+          setTimeout(startPreload, 1200);
+        }
+      } catch (e) {
+        console.error('Failed to load alphabet', e);
+      }
+    }
+    loadAlphabet();
+    return () => { cancelled = true; };
+  }, []);
+
   // Reload progress whenever the active profile changes. The X-Profile-Id
-  // axios header is already published by ProfileContext, so these requests
-  // are scoped to the active profile.
+  // axios header is already published by ProfileContext, so this request is
+  // scoped to the active profile.
   useEffect(() => {
     if (!activeProfileId) {
       setProgress({});
@@ -26,25 +58,18 @@ export function ProgressProvider({ children }) {
     }
     let cancelled = false;
     setLoading(true);
-    async function load() {
+    async function loadProgress() {
       try {
-        const [alphaRes, progRes] = await Promise.all([
-          axios.get(`${API}/alphabet`),
-          axios.get(`${API}/progress`),
-        ]);
+        const { data } = await axios.get(`${API}/progress`);
         if (cancelled) return;
-        setAlphabet(alphaRes.data);
-        setProgress(progRes.data);
-
-        // Pre-load all audio in the background so playback is instant
-        preloadAllAudio(alphaRes.data).then(() => { if (!cancelled) setAudioReady(true); });
+        setProgress(data);
       } catch (e) {
-        console.error('Failed to load data', e);
+        console.error('Failed to load progress', e);
       } finally {
         if (!cancelled) setLoading(false);
       }
     }
-    load();
+    loadProgress();
     return () => { cancelled = true; };
   }, [activeProfileId]);
 
