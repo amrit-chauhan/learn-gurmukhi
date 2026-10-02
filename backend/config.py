@@ -16,11 +16,17 @@ class Settings:
 
     # MongoDB Atlas' native Vercel integration injects MONGODB_URI, so prefer
     # it when both names exist. MONGO_URL remains supported for local and
-    # legacy hosted setups.
-    mongo_url: Optional[str] = os.environ.get("MONGODB_URI") or os.environ.get(
-        "MONGO_URL"
-    )
-    db_name: str = os.environ.get("DB_NAME", "punjabi_alphabet")
+    # legacy hosted setups. These two settings are properties because Vercel
+    # Services can inject project variables after the Python module is first
+    # imported but before the function handles its first request.
+    @property
+    def mongo_url(self) -> Optional[str]:
+        return os.environ.get("MONGODB_URI") or os.environ.get("MONGO_URL")
+
+    @property
+    def db_name(self) -> str:
+        return os.environ.get("DB_NAME", "punjabi_alphabet")
+
     cors_origins: str = os.environ.get("CORS_ORIGINS", "*")
 
     # Progress history cap – keep only this many recent results per letter

@@ -21,7 +21,7 @@ from slowapi.errors import RateLimitExceeded
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.middleware import SlowAPIMiddleware
 
-import database  # ensures Motor client is created on startup
+import database
 from config import settings
 from rate_limit import limiter
 from routes import (
@@ -54,8 +54,7 @@ async def lifespan(app: FastAPI):
     )
     yield
     # ── shutdown ──────────────────────────────────────────────────────────
-    if database.client is not None:
-        database.client.close()
+    database.db.close()
 
 
 app = FastAPI(title="Punjabi Alphabet API", lifespan=lifespan)

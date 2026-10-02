@@ -53,3 +53,27 @@ def test_vercel_mongodb_uri_takes_precedence_over_legacy_name():
 def test_invalid_uri_does_not_crash_application_import():
     result = run_import({"MONGODB_URI": '"mongodb://example.test:27017"'})
     assert result.returncode == 0
+
+
+def test_database_uses_environment_injected_after_import():
+    env = os.environ.copy()
+    env.pop("MONGO_URL", None)
+    env.pop("MONGODB_URI", None)
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            (
+                "import os, database; "
+                "os.environ['MONGODB_URI']='mongodb://late.example.test:27017'; "
+                "database.db.profiles; "
+                "print(database.db._configuration[0])"
+            ),
+        ],
+        cwd=BACKEND_DIR,
+        env=env,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert result.stdout.strip() == "mongodb://late.example.test:27017"
