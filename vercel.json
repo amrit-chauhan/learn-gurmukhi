@@ -11,6 +11,12 @@
       "entrypoint": "server:app"
     }
   },
+  "crons": [
+    {
+      "path": "/api/cron/keepalive",
+      "schedule": "0 0 1,15 * *"
+    }
+  ],
   "rewrites": [
     {
       "source": "/api(/.*)?",

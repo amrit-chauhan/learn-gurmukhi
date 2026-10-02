@@ -12,9 +12,10 @@ Everything else lives in config / database / routes / services / repositories.
 
 import logging
 import os
+import secrets
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 from starlette.middleware.cors import CORSMiddleware
 from slowapi.errors import RateLimitExceeded
@@ -69,6 +70,20 @@ async def health():
             os.environ.get("MONGODB_URI") or os.environ.get("MONGO_URL")
         ),
     }
+
+
+@app.get("/api/cron/keepalive", include_in_schema=False)
+async def database_keepalive(request: Request):
+    """Keep the free Atlas cluster active without reading or changing user data."""
+    cron_secret = os.environ.get("CRON_SECRET")
+    authorization = request.headers.get("authorization", "")
+    if not cron_secret or not secrets.compare_digest(
+        authorization, f"Bearer {cron_secret}"
+    ):
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    await database.db.command("ping")
+    return {"ok": True}
 
 
 @app.exception_handler(database.DatabaseConfigurationError)

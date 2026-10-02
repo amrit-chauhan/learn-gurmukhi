@@ -34,10 +34,18 @@ relative path `/api` — so `REACT_APP_BACKEND_URL` is pinned to an empty string
    | `DB_NAME`      | `punjabi_alphabet`                                              |
    | `CORS_ORIGINS` | Optional — same-origin needs no CORS; leave default `*` or set your domain |
    | `RATE_LIMIT_*` | Optional — override the F-001 rate limits (see below)          |
+   | `CRON_SECRET`  | Random secret (16+ characters) used by Vercel to authenticate the Atlas keepalive job |
 
 4. **Deploy.** The app is live on one URL; the API is under `/<url>/api`.
 5. **Auto-deploy:** with the repo connected, every push to the production branch
    redeploys automatically — no further setup.
+
+### Free Atlas keepalive
+
+Vercel calls `GET /api/cron/keepalive` on the 1st and 15th of each month. The
+route authenticates Vercel's `Authorization` header using `CRON_SECRET`, then
+runs MongoDB's read-only `ping` command. This keeps a free Atlas cluster from
+reaching 30 days without a connection and does not read or modify user data.
 
 > **Note — audio in serverless:** the backend serves pre-generated mp3s from
 > `backend/data/audio/`. `vercel.json` bundles them into the function via
