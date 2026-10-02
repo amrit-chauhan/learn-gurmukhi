@@ -14,10 +14,11 @@ load_dotenv(Path(__file__).parent / ".env")
 class Settings:
     """All configuration sourced from environment variables."""
 
-    # MongoDB Atlas' native Vercel integration injects MONGODB_URI. Keep
-    # MONGO_URL as the first choice for existing local and hosted setups.
-    mongo_url: Optional[str] = os.environ.get("MONGO_URL") or os.environ.get(
-        "MONGODB_URI"
+    # MongoDB Atlas' native Vercel integration injects MONGODB_URI, so prefer
+    # it when both names exist. MONGO_URL remains supported for local and
+    # legacy hosted setups.
+    mongo_url: Optional[str] = os.environ.get("MONGODB_URI") or os.environ.get(
+        "MONGO_URL"
     )
     db_name: str = os.environ.get("DB_NAME", "punjabi_alphabet")
     cors_origins: str = os.environ.get("CORS_ORIGINS", "*")

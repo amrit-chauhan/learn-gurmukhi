@@ -4,6 +4,7 @@ Imports config (which loads .env) so this module is safe to import anywhere.
 """
 
 from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo.errors import ConfigurationError, InvalidURI
 from config import settings
 
 
@@ -21,8 +22,14 @@ class UnconfiguredDatabase:
 
 
 if settings.mongo_url:
-    client = AsyncIOMotorClient(settings.mongo_url)
-    db = client[settings.db_name]
+    try:
+        client = AsyncIOMotorClient(settings.mongo_url)
+        db = client[settings.db_name]
+    except (ConfigurationError, InvalidURI, ValueError):
+        # A malformed/placeholder URI must not prevent unrelated static API
+        # routes from starting. Database-backed routes return a useful 503.
+        client = None
+        db = UnconfiguredDatabase()
 else:
     client = None
     db = UnconfiguredDatabase()

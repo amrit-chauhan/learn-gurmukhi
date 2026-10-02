@@ -36,3 +36,20 @@ def test_server_can_start_without_database_configuration():
 def test_vercel_mongodb_uri_is_supported():
     result = run_import({"MONGODB_URI": "mongodb://example.test:27017"})
     assert result.stdout.strip() == "mongodb://example.test:27017 punjabi_alphabet"
+
+
+def test_vercel_mongodb_uri_takes_precedence_over_legacy_name():
+    result = run_import(
+        {
+            "MONGODB_URI": "mongodb://vercel.example.test:27017",
+            "MONGO_URL": "mongodb://legacy.example.test:27017",
+        }
+    )
+    assert result.stdout.strip() == (
+        "mongodb://vercel.example.test:27017 punjabi_alphabet"
+    )
+
+
+def test_invalid_uri_does_not_crash_application_import():
+    result = run_import({"MONGODB_URI": '"mongodb://example.test:27017"'})
+    assert result.returncode == 0
