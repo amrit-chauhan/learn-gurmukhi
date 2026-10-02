@@ -11,6 +11,7 @@ Everything else lives in config / database / routes / services / repositories.
 """
 
 import logging
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -58,6 +59,17 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Punjabi Alphabet API", lifespan=lifespan)
+
+
+@app.get("/api/health", tags=["health"])
+async def health():
+    """Expose readiness without ever returning a database credential."""
+    return {
+        "status": "ok",
+        "database_configured": bool(
+            os.environ.get("MONGODB_URI") or os.environ.get("MONGO_URL")
+        ),
+    }
 
 
 @app.exception_handler(database.DatabaseConfigurationError)
