@@ -14,6 +14,7 @@ import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 from starlette.middleware.cors import CORSMiddleware
 from slowapi.errors import RateLimitExceeded
 from slowapi import _rate_limit_exceeded_handler
@@ -41,16 +42,29 @@ async def lifespan(app: FastAPI):
     # ── startup ───────────────────────────────────────────────────────────
     # All audio (human + AI) is pre-generated and served as static files.
     from pathlib import Path
+
     base = Path(__file__).parent / "data" / "audio"
     human_count = len(list((base / "human").glob("*.mp3")))
     ai_count = len(list((base / "ai_cache").glob("*.mp3")))
-    logger.info("Server ready. Human audio: %d files, AI cache: %d files.", human_count, ai_count)
+    logger.info(
+        "Server ready. Human audio: %d files, AI cache: %d files.",
+        human_count,
+        ai_count,
+    )
     yield
     # ── shutdown ──────────────────────────────────────────────────────────
-    database.client.close()
+    if database.client is not None:
+        database.client.close()
 
 
 app = FastAPI(title="Punjabi Alphabet API", lifespan=lifespan)
+
+
+@app.exception_handler(database.DatabaseConfigurationError)
+async def database_configuration_error_handler(_request, exc):
+    """Return an actionable response instead of crashing the whole function."""
+    return JSONResponse(status_code=503, content={"detail": str(exc)})
+
 
 # ── Rate limiting ───────────────────────────────────────────────────────────────
 # App-level defence-in-depth (per-client-IP). Primary bot/DDoS defence is

@@ -5,6 +5,7 @@ Loads .env once at import time; exposes a single `settings` singleton.
 
 import os
 from pathlib import Path
+from typing import Optional
 from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).parent / ".env")
@@ -13,8 +14,12 @@ load_dotenv(Path(__file__).parent / ".env")
 class Settings:
     """All configuration sourced from environment variables."""
 
-    mongo_url: str = os.environ["MONGO_URL"]
-    db_name: str = os.environ["DB_NAME"]
+    # MongoDB Atlas' native Vercel integration injects MONGODB_URI. Keep
+    # MONGO_URL as the first choice for existing local and hosted setups.
+    mongo_url: Optional[str] = os.environ.get("MONGO_URL") or os.environ.get(
+        "MONGODB_URI"
+    )
+    db_name: str = os.environ.get("DB_NAME", "punjabi_alphabet")
     cors_origins: str = os.environ.get("CORS_ORIGINS", "*")
 
     # Progress history cap – keep only this many recent results per letter
@@ -24,7 +29,9 @@ class Settings:
     # Per-client-IP limits applied to the API as app-level defence-in-depth
     # behind Cloudflare (see docs/DEPLOYMENT.md). Disable with
     # RATE_LIMIT_ENABLED=false (e.g. for load tests).
-    rate_limit_enabled: bool = os.environ.get("RATE_LIMIT_ENABLED", "true").lower() != "false"
+    rate_limit_enabled: bool = (
+        os.environ.get("RATE_LIMIT_ENABLED", "true").lower() != "false"
+    )
     # Generous global default so normal use (and the integration test suite,
     # which fires many requests from one host) never trips it.
     rate_limit_default: str = os.environ.get("RATE_LIMIT_DEFAULT", "240/minute")

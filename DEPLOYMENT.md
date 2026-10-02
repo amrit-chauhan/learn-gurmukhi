@@ -30,7 +30,7 @@ relative path `/api` — so `REACT_APP_BACKEND_URL` is pinned to an empty string
 
    | Variable       | Value                                                          |
    |----------------|-----------------------------------------------------------------|
-   | `MONGO_URL`    | Your Atlas connection string, e.g. `mongodb+srv://user:pass@cluster.mongodb.net/` |
+   | `MONGO_URL` or `MONGODB_URI` | Your Atlas connection string. The native Vercel Atlas integration creates `MONGODB_URI` automatically. |
    | `DB_NAME`      | `punjabi_alphabet`                                              |
    | `CORS_ORIGINS` | Optional — same-origin needs no CORS; leave default `*` or set your domain |
    | `RATE_LIMIT_*` | Optional — override the F-001 rate limits (see below)          |
