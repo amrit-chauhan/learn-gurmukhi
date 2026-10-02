@@ -11,7 +11,7 @@ import { useProfile } from '../context/ProfileContext';
 
 export default function ProfileSelect() {
   const navigate = useNavigate();
-  const { profiles, loading, selectProfile } = useProfile();
+  const { profiles, loading, loadError, reloadProfiles, selectProfile } = useProfile();
 
   const handlePick = (id) => {
     selectProfile(id);
@@ -33,6 +33,18 @@ export default function ProfileSelect() {
 
         {loading ? (
           <p className="mt-10 text-stone-400">Loading profiles…</p>
+        ) : loadError ? (
+          <div className="mt-10 rounded-2xl border border-red-100 bg-white px-6 py-5 shadow-sm">
+            <p className="font-bold text-stone-800">Profiles couldn&apos;t be loaded.</p>
+            <p className="mt-1 text-sm text-stone-500">The server may be temporarily unavailable.</p>
+            <button
+              type="button"
+              onClick={reloadProfiles}
+              className="mt-4 rounded-xl bg-stone-900 px-5 py-2.5 text-sm font-bold text-white hover:bg-stone-700 active:scale-[0.98] transition-all"
+            >
+              Try again
+            </button>
+          </div>
         ) : (
           <div className="mt-10 grid grid-cols-2 sm:grid-cols-3 gap-4">
             {profiles.map((p) => (

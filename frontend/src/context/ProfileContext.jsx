@@ -74,6 +74,8 @@ export function ProfileProvider({ children }) {
   const [profiles, setProfiles] = useState([]);
   const [activeProfileId, setActiveProfileId] = useState(loadActiveProfileId);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
 
   // Publish the header synchronously on every render so it is present before
   // any child provider's fetch effect runs.
@@ -82,6 +84,8 @@ export function ProfileProvider({ children }) {
   // Fetch the profile list once on mount.
   useEffect(() => {
     let cancelled = false;
+    setLoading(true);
+    setLoadError(false);
     axios.get(`${API}/profiles`)
       .then(({ data }) => {
         if (cancelled) return;
@@ -95,10 +99,10 @@ export function ProfileProvider({ children }) {
           return prev;
         });
       })
-      .catch(() => {})
+      .catch(() => { if (!cancelled) setLoadError(true); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, []);
+  }, [loadAttempt]);
 
   const activeProfile = profiles.find(p => p.id === activeProfileId) || null;
 
@@ -112,6 +116,10 @@ export function ProfileProvider({ children }) {
     applyHeader(null);
     persistActiveProfileId(null);
     setActiveProfileId(null);
+  }, []);
+
+  const reloadProfiles = useCallback(() => {
+    setLoadAttempt(attempt => attempt + 1);
   }, []);
 
   const updateProfile = useCallback(async (id, updates) => {
@@ -131,6 +139,8 @@ export function ProfileProvider({ children }) {
         activeProfile,
         activeProfileId,
         loading,
+        loadError,
+        reloadProfiles,
         selectProfile,
         clearActiveProfile,
         updateProfile,

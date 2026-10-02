@@ -10,7 +10,8 @@ Vercel's default once the repo is connected.
 The root `vercel.json` builds both services and routes between them:
 - `frontend/` → built with `@vercel/static-build` (`craco build` → `build/`),
   served as the site.
-- `backend/server.py` → deployed as a `@vercel/python` serverless function.
+- `backend/server.py` → deployed as a FastAPI service. Its Vercel Services
+  entrypoint is `server:app` (Python module + ASGI application), not a file path.
 - `/api/*` is routed to the Python function; everything else falls back to the
   SPA's `index.html`. Static files (JS/CSS/fonts) are served directly.
 
