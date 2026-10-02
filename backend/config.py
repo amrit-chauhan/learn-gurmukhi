@@ -21,7 +21,14 @@ class Settings:
     # imported but before the function handles its first request.
     @property
     def mongo_url(self) -> Optional[str]:
-        return os.environ.get("MONGODB_URI") or os.environ.get("MONGO_URL")
+        value = os.environ.get("MONGODB_URI") or os.environ.get("MONGO_URL")
+        if value is None:
+            return None
+
+        value = value.strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in {"'", '"'}:
+            value = value[1:-1].strip()
+        return value or None
 
     @property
     def db_name(self) -> str:

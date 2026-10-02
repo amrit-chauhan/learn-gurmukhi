@@ -50,6 +50,13 @@ def test_vercel_mongodb_uri_takes_precedence_over_legacy_name():
     )
 
 
+def test_copied_quotes_and_whitespace_are_removed_from_uri():
+    result = run_import(
+        {"MONGODB_URI": '  "mongodb://example.test:27017/punjabi"  '}
+    )
+    assert result.stdout.strip() == "mongodb://example.test:27017/punjabi punjabi_alphabet"
+
+
 def test_invalid_uri_does_not_crash_application_import():
     result = run_import({"MONGODB_URI": '"mongodb://example.test:27017"'})
     assert result.returncode == 0
