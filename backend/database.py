@@ -33,9 +33,19 @@ class LazyMongoDatabase:
         try:
             new_client = AsyncIOMotorClient(mongo_url)
             new_database = new_client[db_name]
-        except (ConfigurationError, InvalidURI, ValueError) as exc:
+        except InvalidURI as exc:
             raise DatabaseConfigurationError(
-                "MongoDB is configured with an invalid connection string."
+                "MongoDB connection string syntax is invalid. Check that credentials "
+                "are URL-encoded and that the value starts with mongodb:// or mongodb+srv://."
+            ) from exc
+        except ConfigurationError as exc:
+            raise DatabaseConfigurationError(
+                "MongoDB Atlas host configuration could not be resolved. Check the cluster "
+                "hostname and confirm the Atlas cluster is active."
+            ) from exc
+        except ValueError as exc:
+            raise DatabaseConfigurationError(
+                "MongoDB connection settings contain an invalid value."
             ) from exc
 
         self.close()

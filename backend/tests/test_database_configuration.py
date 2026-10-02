@@ -84,3 +84,18 @@ def test_database_uses_environment_injected_after_import():
         check=True,
     )
     assert result.stdout.strip() == "mongodb://late.example.test:27017"
+
+
+def test_invalid_uri_reports_actionable_syntax_error(monkeypatch):
+    monkeypatch.setenv("MONGODB_URI", "mongodb://user:pa@ss@example.test/db")
+
+    import database
+
+    lazy_database = database.LazyMongoDatabase()
+    try:
+        lazy_database.profiles
+    except database.DatabaseConfigurationError as exc:
+        assert "syntax is invalid" in str(exc)
+        assert "URL-encoded" in str(exc)
+    else:
+        raise AssertionError("Expected invalid URI to be rejected")
